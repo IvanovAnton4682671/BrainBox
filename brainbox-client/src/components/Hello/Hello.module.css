@@ -1,0 +1,113 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.wrapper {
+  display: flex;
+  height: 100vh;
+
+  .leftPart {
+    display: flex;
+    height: 100%;
+    width: 50%;
+    align-items: center;
+    justify-content: center;
+    background-color: #000000;
+  
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+  
+      h1 {
+        color: #ffffff;
+        font-size: 40px;
+      }
+  
+      .icons {
+        position: relative;
+        width: 80px;
+        height: 80px;
+  
+        .box,
+        .brain {
+          position: absolute;
+          top: 0;
+          left: 0;
+          color: #ffffff;
+        }
+  
+        .box {
+          font-size: 80px;
+          z-index: 1;
+        }
+  
+        .brain {
+          font-size: 50px;
+          z-index: 2;
+          padding: 25px 0 0 15px;
+        }
+      }
+    }
+  }
+
+  .rightPart {
+    display: flex;
+    height: 100%;
+    width: 50%;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+  
+    .myForm {
+      form {
+        display: flex;
+        flex-direction: column;
+  
+        h1 {
+          text-align: center;
+          color: #000000;
+        }
+  
+        h3 {
+          color: #000000;
+        }
+  
+        input {
+          width: 400px;
+          background: none;
+          border: none;
+          outline: none;
+          border-bottom: 3px solid #000000;
+          font-size: 18px;
+          color: #000000;
+          font-family: "Microsoft YaHei UI";
+        }
+  
+        input::placeholder {
+          color: #3c3c3c;
+          opacity: 0.7;
+        }
+  
+        button {
+          height: 40px;
+          margin-top: 30px;
+          border: none;
+          border-radius: 20px;
+          background-color: #000000;
+          font-size: 18px;
+          font-family: "Microsoft YaHei UI";
+          color: #ffffff;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+  
+        button:hover {
+          background-color: #3c3c3c;
+        }
+      }
+    }
+  }
+}
