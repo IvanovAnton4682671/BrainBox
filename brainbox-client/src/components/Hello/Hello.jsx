@@ -2,14 +2,18 @@ import React from "react";
 import styles from "./Hello.module.css";
 import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
-import { FaArrowAltCircleRight } from "react-icons/fa";
-import { FaArrowAltCircleLeft } from "react-icons/fa";
+import RegForm from "./RegForm";
+import AuthForm from "./AuthForm";
 
 function Hello() {
-  const [isRegister, setIsRegister] = React.useState(true)
-  const handleRightArrowClick = () => {
-    setIsRegister(!isRegister)
-  }
+  const [isSwitched, setIsSwitched] = React.useState(true);
+  const [isAnim, setIsAnim] = React.useState(false);
+  const handleArrowClick = () => {
+    setIsAnim(!isAnim);
+    setTimeout(() => {
+      setIsSwitched(!isSwitched);
+    }, 300);
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -23,47 +27,19 @@ function Hello() {
         </div>
       </div>
       <div className={styles.rightPart}>
-
-      <div className={styles.formAndBlock}>
-          <div className={`${styles.helpBlockLeft} ${!isRegister ? "" : styles.hideAuth}`}>
-            <h3>Ещё не зарегистрировались?</h3>
-            <FaArrowAltCircleLeft className={styles.leftArrow} onClick={handleRightArrowClick}></FaArrowAltCircleLeft>
-            <h3>Зарегистрироваться</h3>
-          </div>
-          <div className={`${styles.myForm} ${!isRegister ? "" : styles.hideAuth}`}>
-            <form>
-              <h1>Авторизация</h1>
-              <h3>Почта</h3>
-              <input type="email" placeholder="Ваша актуальная почта"></input>
-              <h3>Пароль</h3>
-              <input type="password" placeholder="Ваш сложный пароль"></input>
-              <button type="button">Авторизоваться</button>
-            </form>
-          </div>
-        </div>
-
-        <div className={styles.formAndBlock}>
-          <div className={`${styles.myForm} ${!isRegister ? styles.hideReg : ""}`}>
-            <form>
-              <h1>Регистрация</h1>
-              <h3>Почта</h3>
-              <input type="email" placeholder="Ваша актуальная почта"></input>
-              <h3>Имя</h3>
-              <input type="text" placeholder="Ваше имя в системе"></input>
-              <h3>Пароль</h3>
-              <input type="password" placeholder="Ваш сложный пароль"></input>
-              <button type="button">Зарегистрироваться</button>
-            </form>
-          </div>
-          <div className={`${styles.helpBlockRight} ${!isRegister ? styles.hideReg : ""}`}>
-            <h3>Уже зарегистрировались?</h3>
-            <FaArrowAltCircleRight className={styles.rightArrow} onClick={handleRightArrowClick}></FaArrowAltCircleRight>
-            <h3>Авторизоваться</h3>
-          </div>
-        </div>
-
-        
-
+        {isSwitched ? (
+          <RegForm
+            isAnim={isAnim}
+            isSwitched={isSwitched}
+            handleArrowClick={handleArrowClick}
+          />
+        ) : (
+          <AuthForm
+            isAnim={isAnim}
+            isSwitched={isSwitched}
+            handleArrowClick={handleArrowClick}
+          />
+        )}
       </div>
     </div>
   );
