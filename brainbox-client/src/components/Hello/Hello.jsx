@@ -28,17 +28,9 @@ function Hello() {
       </div>
       <div className={styles.rightPart}>
         {isSwitched ? (
-          <RegForm
-            isAnim={isAnim}
-            isSwitched={isSwitched}
-            handleArrowClick={handleArrowClick}
-          />
+          <RegForm isAnim={isAnim} handleArrowClick={handleArrowClick} />
         ) : (
-          <AuthForm
-            isAnim={isAnim}
-            isSwitched={isSwitched}
-            handleArrowClick={handleArrowClick}
-          />
+          <AuthForm isAnim={isAnim} handleArrowClick={handleArrowClick} />
         )}
       </div>
     </div>

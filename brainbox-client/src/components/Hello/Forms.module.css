@@ -58,6 +58,10 @@ form {
   }
 }
 
+.inputError {
+  border-bottom: 3px solid red;
+}
+
 .helpBlockRight {
   display: flex;
   flex-direction: column;
