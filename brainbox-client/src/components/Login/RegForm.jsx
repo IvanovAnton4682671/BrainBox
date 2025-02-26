@@ -2,7 +2,7 @@ import React from "react";
 import styles from "./Forms.module.css";
 import { FaArrowAltCircleRight } from "react-icons/fa";
 
-function RegForm({ isAnim, handleArrowClick }) {
+function RegForm({ isAnim, handleArrowClick, handleAuthentication }) {
   const [email, setEmail] = React.useState("");
   const [name, setName] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -63,6 +63,7 @@ function RegForm({ isAnim, handleArrowClick }) {
       return;
     }
     alert("Форма успешно отправлена!");
+    handleAuthentication(true);
   };
 
   return (
@@ -115,7 +116,7 @@ function RegForm({ isAnim, handleArrowClick }) {
         <FaArrowAltCircleRight
           className={styles.rightArrow}
           onClick={handleArrowClick}
-        ></FaArrowAltCircleRight>
+        />
         <h3>Авторизоваться</h3>
       </div>
     </div>

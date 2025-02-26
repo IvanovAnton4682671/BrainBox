@@ -1,13 +1,14 @@
 import React from "react";
-import styles from "./Hello.module.css";
+import styles from "./Login.module.css";
 import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
 import RegForm from "./RegForm";
 import AuthForm from "./AuthForm";
 
-function Hello() {
+function Login({ handleAuthentication }) {
   const [isSwitched, setIsSwitched] = React.useState(true);
   const [isAnim, setIsAnim] = React.useState(false);
+
   const handleArrowClick = () => {
     setIsAnim(!isAnim);
     setTimeout(() => {
@@ -21,20 +22,28 @@ function Hello() {
         <div className={styles.title}>
           <h1>BrainBox</h1>
           <div className={styles.icons}>
-            <BsBox2 className={styles.box}></BsBox2>
-            <GiBrain className={styles.brain}></GiBrain>
+            <BsBox2 className={styles.box} />
+            <GiBrain className={styles.brain} />
           </div>
         </div>
       </div>
       <div className={styles.rightPart}>
         {isSwitched ? (
-          <RegForm isAnim={isAnim} handleArrowClick={handleArrowClick} />
+          <RegForm
+            isAnim={isAnim}
+            handleArrowClick={handleArrowClick}
+            handleAuthentication={handleAuthentication}
+          />
         ) : (
-          <AuthForm isAnim={isAnim} handleArrowClick={handleArrowClick} />
+          <AuthForm
+            isAnim={isAnim}
+            handleArrowClick={handleArrowClick}
+            handleAuthentication={handleAuthentication}
+          />
         )}
       </div>
     </div>
   );
 }
 
-export default Hello;
+export default Login;

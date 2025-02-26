@@ -1,9 +1,22 @@
-
-import Hello from "./components/Hello/Hello";
+import React from "react";
+import Login from "./components/Login/Login";
+import Home from "./components/Home/Home";
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+
+  const handleAuthentication = (isAuth) => {
+    setIsAuthenticated(isAuth);
+  };
+
   return (
-    <Hello/>
+    <div>
+      {isAuthenticated ? (
+        <Home handleAuthentication={handleAuthentication} />
+      ) : (
+        <Login handleAuthentication={handleAuthentication} />
+      )}
+    </div>
   );
 }
 

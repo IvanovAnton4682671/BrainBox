@@ -1,0 +1,25 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.wrapper {
+  height: 100vh;
+}
+
+.header {
+  height: 10%;
+  width: 100%;
+}
+
+.homeBody {
+  display: flex;
+  height: 90%;
+  width: 100%;
+}
+
+.sideMenu {
+  height: 100%;
+}

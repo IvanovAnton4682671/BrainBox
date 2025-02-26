@@ -1,0 +1,75 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #000000;
+  width: 100%;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  gap: 10px;
+
+  h2 {
+    color: #ffffff;
+  }
+}
+
+.icons {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.box,
+.brain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #ffffff;
+}
+
+.box {
+  font-size: 40px;
+  z-index: 1;
+}
+
+.brain {
+  font-size: 25px;
+  z-index: 2;
+  padding: 12px 0 0 7px;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  gap: 10px;
+}
+
+.personIcon {
+  color: #ffffff;
+  font-size: 40px;
+}
+
+.buttonExit {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  margin-right: 20px;
+  padding: 10px;
+  border: none;
+  border-radius: 20px;
+  background-color: #ffffff;
+  font-size: 16px;
+  font-family: "Microsoft YaHei UI";
+  color: #000000;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #a3a3a3;
+  }
+}
