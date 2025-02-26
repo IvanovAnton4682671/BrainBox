@@ -1,14 +1,23 @@
+import React from "react";
 import styles from "./SideMenu.module.css";
 
-function SideMenu() {
+function SideMenu({ handleSelectedChat }) {
+  const [selectedItem, setSelectedItem] = React.useState(null);
+  
+  const handleItemClick = (index) => {
+    setSelectedItem(index);
+    handleSelectedChat();
+  }
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.title}>
         <h4>Список сервисов</h4>
       </div>
       <div className={styles.listOfServices}>
-        <div className={styles.menuItem}>Речь в текст</div>
-        <div className={styles.menuItem}>Генерация картинок</div>
+        {["Речь в текст", "Генерация картинок", "Чат-бот"].map((item, index) => (
+          <div key={index} className={`${styles.menuItem} ${selectedItem === index ? styles.selectedItem : ""}`} onClick={() => handleItemClick(index)}>{item}</div>
+        ))}
       </div>
     </div>
   );
