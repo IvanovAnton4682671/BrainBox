@@ -26,4 +26,13 @@ body {
 .sideMenu {
   display: flex;
   height: 100%;
+  width: 20%;
+}
+
+.chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 80%;
 }

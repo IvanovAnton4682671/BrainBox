@@ -9,7 +9,7 @@ function Home({ handleAuthentication }) {
 
   const handleSelectedChat = () => {
     setSelectedChat(true);
-  }
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -22,7 +22,9 @@ function Home({ handleAuthentication }) {
         </div>
         <div className={styles.chat}>
           {!selectedChat ? (
-            <h3>Выберите какой-нибудь чат!</h3>
+            <div className={styles.baseInfo}>
+              <h3>Выберите какой-нибудь чат!</h3>
+            </div>
           ) : (
             <Chat />
           )}
