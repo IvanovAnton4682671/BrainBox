@@ -1,14 +1,22 @@
+import React from "react";
 import styles from "./Chat.module.css";
-import ChatInputArea from "./ChatInputArea";
+import ChatMessageZone from "./ChatMessageZone";
+import ChatInputZone from "./ChatInputZone";
 
 function Chat() {
+  const [messages, setMessages] = React.useState([]);
+
+  const handleMessages = (message) => {
+    setMessages([...messages, message]);
+  };
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.chatWindow}>
-        <p>chatWindow</p>
+        <ChatMessageZone messages={messages} />
       </div>
       <div className={styles.chatInputZone}>
-        <ChatInputArea />
+        <ChatInputZone handleMessages={handleMessages} />
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ function SideMenu({ handleSelectedChat }) {
         <h4>Список сервисов</h4>
       </div>
       <div className={styles.listOfServices}>
-        {["Речь в текст", "Генерация картинок", "Чат-бот"].map(
+        {["Генерация картинок", "Речь в текст", "Чат-бот"].map(
           (item, index) => (
             <div
               key={index}
