@@ -6,8 +6,20 @@ import ChatInputZone from "./ChatInputZone";
 function Chat() {
   const [messages, setMessages] = React.useState([]);
 
+  const generateResponse = () => {
+    return "Это автоматический ответ от системы. Ваше сообщение получено!";
+  };
+
   const handleMessages = (message) => {
-    setMessages([...messages, message]);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { text: message, type: "user" },
+    ]);
+    const response = generateResponse();
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { text: response, type: "response" },
+    ]);
   };
 
   return (
