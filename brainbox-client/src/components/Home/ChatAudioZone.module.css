@@ -1,0 +1,20 @@
+.wrapper {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploadButton {
+  border-radius: 20px;
+  background-color: #000000;
+  color: #ffffff;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #555555;
+  }
+}

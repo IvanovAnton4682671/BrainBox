@@ -1,9 +1,10 @@
 import React from "react";
 import styles from "./Chat.module.css";
 import ChatMessageZone from "./ChatMessageZone";
+import ChatAudioZone from "./ChatAudioZone";
 import ChatInputZone from "./ChatInputZone";
 
-function Chat() {
+function Chat({ selectedService }) {
   const [messages, setMessages] = React.useState([]);
 
   const generateResponse = () => {
@@ -13,7 +14,7 @@ function Chat() {
   const handleMessages = (message) => {
     setMessages((prevMessages) => [
       ...prevMessages,
-      { text: message, type: "user" },
+      { text: message.text, type: "user", isAudio: message.isAudio || false },
     ]);
     const response = generateResponse();
     setMessages((prevMessages) => [
@@ -28,7 +29,11 @@ function Chat() {
         <ChatMessageZone messages={messages} />
       </div>
       <div className={styles.chatInputZone}>
-        <ChatInputZone handleMessages={handleMessages} />
+        {selectedService === "Речь в текст" ? (
+          <ChatAudioZone handleMessages={handleMessages} />
+        ) : (
+          <ChatInputZone handleMessages={handleMessages} />
+        )}
       </div>
     </div>
   );

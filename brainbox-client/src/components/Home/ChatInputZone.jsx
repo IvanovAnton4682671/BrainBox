@@ -12,7 +12,7 @@ function ChatInputZone({ handleMessages }) {
 
   const handleSendMessage = () => {
     if (inputValue.trim()) {
-      handleMessages(inputValue);
+      handleMessages({ text: inputValue });
       setInputValue("");
     }
   };

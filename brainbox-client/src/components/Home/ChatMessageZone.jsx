@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./ChatMessageZone.module.css";
+import { FaFileAudio } from "react-icons/fa";
 
 function ChatMessageZone({ messages }) {
   const messageBoxRef = React.useRef(null);
@@ -22,6 +23,7 @@ function ChatMessageZone({ messages }) {
                 : styles.responseMessage
             }
           >
+            {message.isAudio && <FaFileAudio className={styles.audioImg} />}
             {message.text}
           </div>
         ))}

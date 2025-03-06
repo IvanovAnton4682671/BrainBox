@@ -4,9 +4,9 @@ import styles from "./SideMenu.module.css";
 function SideMenu({ handleSelectedChat }) {
   const [selectedItem, setSelectedItem] = React.useState(null);
 
-  const handleItemClick = (index) => {
+  const handleItemClick = (index, item) => {
     setSelectedItem(index);
-    handleSelectedChat();
+    handleSelectedChat(item);
   };
 
   return (
@@ -15,14 +15,14 @@ function SideMenu({ handleSelectedChat }) {
         <h4>Список сервисов</h4>
       </div>
       <div className={styles.listOfServices}>
-        {["Генерация картинок", "Речь в текст", "Чат-бот"].map(
+        {["Речь в текст", "Генерация картинок", "Чат-бот"].map(
           (item, index) => (
             <div
               key={index}
               className={`${styles.menuItem} ${
                 selectedItem === index ? styles.selectedItem : ""
               }`}
-              onClick={() => handleItemClick(index)}
+              onClick={() => handleItemClick(index, item)}
             >
               {item}
             </div>

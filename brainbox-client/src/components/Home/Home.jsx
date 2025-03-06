@@ -6,9 +6,11 @@ import Chat from "./Chat";
 
 function Home({ handleAuthentication }) {
   const [selectedChat, setSelectedChat] = React.useState(false);
+  const [selectedService, setSelectedService] = React.useState(null);
 
-  const handleSelectedChat = () => {
+  const handleSelectedChat = (service) => {
     setSelectedChat(true);
+    setSelectedService(service);
   };
 
   return (
@@ -23,10 +25,10 @@ function Home({ handleAuthentication }) {
         <div className={styles.chat}>
           {!selectedChat ? (
             <div className={styles.baseInfo}>
-              <h3>Выберите какой-нибудь чат!</h3>
+              <h3>Выберите какой-нибудь сервис!</h3>
             </div>
           ) : (
-            <Chat />
+            <Chat selectedService={selectedService} />
           )}
         </div>
       </div>
