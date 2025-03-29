@@ -1,6 +1,6 @@
 import React from "react";
-import styles from "./Forms.module.css";
 import { FaArrowAltCircleLeft } from "react-icons/fa";
+import styles from "./Forms.module.css";
 
 function AuthForm({ isAnim, handleArrowClick, handleAuthentication }) {
   const [email, setEmail] = React.useState("");

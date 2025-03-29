@@ -1,13 +1,30 @@
 import React from "react";
-import styles from "./ChatAudioZone.module.css";
+import { useChat } from "../../utils/ChatContext";
 import { FaRegTrashAlt } from "react-icons/fa";
+import styles from "./ChatAudioZone.module.css";
 
 function ChatAudioZone({ handleMessages }) {
+  //получаем поле и метод из состояния
+  const { activeService, deleteChat } = useChat();
+
+  //обработка отправки аудиосообщения через родительский метод взаимодействия с контекстом
   const handleAudioFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const fileName = file.name;
-      handleMessages({ text: fileName, isAudio: true });
+      handleMessages({
+        text: file.name,
+        isAudio: true,
+      });
+    }
+  };
+
+  //удаление истории чата через состояние после подтверждения
+  const handleDeleteChat = () => {
+    if (
+      activeService &&
+      window.confirm("Вы уверены, что хотите удалить текущий чат?")
+    ) {
+      deleteChat(activeService);
     }
   };
 
@@ -25,7 +42,7 @@ function ChatAudioZone({ handleMessages }) {
           onChange={handleAudioFileUpload}
         />
       </div>
-      <div className={styles.buttonDeleteChat}>
+      <div className={styles.buttonDeleteChat} onClick={handleDeleteChat}>
         Удалить чат
         <FaRegTrashAlt className={styles.buttonDeleteChatImg} />
       </div>

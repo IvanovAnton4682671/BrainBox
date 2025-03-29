@@ -1,10 +1,12 @@
 import React from "react";
-import styles from "./ChatMessageZone.module.css";
 import { FaFileAudio } from "react-icons/fa";
+import styles from "./ChatMessageZone.module.css";
 
 function ChatMessageZone({ messages }) {
+  //ссылка на скроллбар для автоматической прокрутки сообщений вниз
   const messageBoxRef = React.useRef(null);
 
+  //реализация автоматической прокрутки при получении нового сообщения
   React.useEffect(() => {
     if (messageBoxRef.current) {
       messageBoxRef.current.scrollTop = messageBoxRef.current.scrollHeight;

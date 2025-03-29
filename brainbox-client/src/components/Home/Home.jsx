@@ -1,17 +1,13 @@
 import React from "react";
-import styles from "./Home.module.css";
 import Header from "./Header";
 import SideMenu from "./SideMenu";
 import Chat from "./Chat";
+import { useChat } from "../../utils/ChatContext";
+import styles from "./Home.module.css";
 
 function Home({ handleAuthentication }) {
-  const [selectedChat, setSelectedChat] = React.useState(false);
-  const [selectedService, setSelectedService] = React.useState(null);
-
-  const handleSelectedChat = (service) => {
-    setSelectedChat(true);
-    setSelectedService(service);
-  };
+  //получаем поле activeService из контекста
+  const { activeService } = useChat();
 
   return (
     <div className={styles.wrapper}>
@@ -20,15 +16,16 @@ function Home({ handleAuthentication }) {
       </div>
       <div className={styles.homeBody}>
         <div className={styles.sideMenu}>
-          <SideMenu handleSelectedChat={handleSelectedChat} />
+          <SideMenu />
         </div>
         <div className={styles.chat}>
-          {!selectedChat ? (
+          {/*по текущем активному сервису рендерим или предупреждение (если activeService = null), или выбранный сервис*/}
+          {!activeService ? (
             <div className={styles.baseInfo}>
               <h3>Выберите какой-нибудь сервис!</h3>
             </div>
           ) : (
-            <Chat selectedService={selectedService} />
+            <Chat />
           )}
         </div>
       </div>

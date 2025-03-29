@@ -1,9 +1,9 @@
 import React from "react";
-import styles from "./Login.module.css";
-import { GiBrain } from "react-icons/gi";
-import { BsBox2 } from "react-icons/bs";
 import RegForm from "./RegForm";
 import AuthForm from "./AuthForm";
+import { GiBrain } from "react-icons/gi";
+import { BsBox2 } from "react-icons/bs";
+import styles from "./Login.module.css";
 
 function Login({ handleAuthentication }) {
   const [isSwitched, setIsSwitched] = React.useState(true);

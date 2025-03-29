@@ -1,10 +1,16 @@
 import React from "react";
-import styles from "./Header.module.css";
 import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
 import { IoPersonCircleSharp } from "react-icons/io5";
+import styles from "./Header.module.css";
 
 function Header({ handleAuthentication }) {
+  const handleConfirmExit = () => {
+    if (window.confirm("Вы уверены, что хотите выйти из аккаунта?")) {
+      handleAuthentication(false);
+    }
+  };
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.title}>
@@ -18,7 +24,8 @@ function Header({ handleAuthentication }) {
         <IoPersonCircleSharp className={styles.personIcon} />
         <button
           type="button"
-          onClick={() => handleAuthentication(false)}
+          /*прокинутый метод из App для выхода из аккаунта*/
+          onClick={handleConfirmExit}
           className={styles.buttonExit}
         >
           Выйти из учётной записи

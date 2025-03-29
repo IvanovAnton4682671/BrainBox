@@ -1,26 +1,37 @@
 import React from "react";
-import styles from "./Chat.module.css";
 import ChatMessageZone from "./ChatMessageZone";
 import ChatAudioZone from "./ChatAudioZone";
 import ChatInputZone from "./ChatInputZone";
+import { useChat } from "../../utils/ChatContext";
+import styles from "./Chat.module.css";
 
-function Chat({ selectedService }) {
-  const [messages, setMessages] = React.useState([]);
+function Chat() {
+  //получаем состояние и метод из контекста
+  const { activeService, chats, sendMessage } = useChat();
+  //фильтруем сообщения для текущего активного сервиса
+  const messages = activeService ? chats[activeService] : [];
 
+  //автоматический ответ
   const generateResponse = () => {
     return "Это автоматический ответ от системы. Ваше сообщение получено!";
   };
 
+  //обработка отправляемого сообщения от пользователя из всех чатов
   const handleMessages = (message) => {
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { text: message.text, type: "user", isAudio: message.isAudio || false },
-    ]);
-    const response = generateResponse();
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { text: response, type: "response" },
-    ]);
+    if (!activeService) {
+      return;
+    }
+
+    //отправка сообщения пользователя
+    sendMessage({ ...message, type: "user" });
+
+    //заглушка для ответа
+    setTimeout(() => {
+      sendMessage({
+        text: generateResponse(),
+        type: "response",
+      });
+    }, 500);
   };
 
   return (
@@ -28,8 +39,14 @@ function Chat({ selectedService }) {
       <div className={styles.chatWindow}>
         <ChatMessageZone messages={messages} />
       </div>
-      <div className={styles.chatInputZone}>
-        {selectedService === "Речь в текст" ? (
+      <div
+        className={
+          activeService === "speechToText"
+            ? styles.chatAudioZone
+            : styles.chatInputZone
+        }
+      >
+        {activeService === "speechToText" ? (
           <ChatAudioZone handleMessages={handleMessages} />
         ) : (
           <ChatInputZone handleMessages={handleMessages} />
