@@ -1,9 +1,15 @@
 .wrapper {
   display: flex;
-  height: 100%;
-  width: 100%;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  width: 100%;
+}
+
+.buttonUpload {
+  display: flex;
 }
 
 .uploadButton {
@@ -17,4 +23,24 @@
   &:hover {
     background-color: #555555;
   }
+}
+
+.buttonDeleteChat {
+  display: flex;
+  gap: 5px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  background-color: red;
+  color: #ffffff;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: rgb(202, 0, 0);
+  }
+}
+
+.buttonDeleteChatImg {
+  font-size: 20px;
 }

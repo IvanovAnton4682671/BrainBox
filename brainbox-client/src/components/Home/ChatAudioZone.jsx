@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./ChatAudioZone.module.css";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 function ChatAudioZone({ handleMessages }) {
   const handleAudioFileUpload = (event) => {
@@ -12,16 +13,22 @@ function ChatAudioZone({ handleMessages }) {
 
   return (
     <div className={styles.wrapper}>
-      <label htmlFor="audio-upload" className={styles.uploadButton}>
-        Загрузить аудиофайл
-      </label>
-      <input
-        id="audio-upload"
-        type="file"
-        accept="audio/*"
-        style={{ display: "none" }}
-        onChange={handleAudioFileUpload}
-      />
+      <div className={styles.buttonUpload}>
+        <label htmlFor="audio-upload" className={styles.uploadButton}>
+          Загрузить аудиофайл
+        </label>
+        <input
+          id="audio-upload"
+          type="file"
+          accept="audio/*"
+          style={{ display: "none" }}
+          onChange={handleAudioFileUpload}
+        />
+      </div>
+      <div className={styles.buttonDeleteChat}>
+        Удалить чат
+        <FaRegTrashAlt className={styles.buttonDeleteChatImg} />
+      </div>
     </div>
   );
 }
