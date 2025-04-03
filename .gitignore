@@ -1,0 +1,45 @@
+#общие системные файлы
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+~$*
+
+#клиент
+brainbox-client/node_modules/
+brainbox-client/.env
+brainbox-client/.env.local
+brainbox-client/.env.development
+brainbox-client/.env.test
+brainbox-client/build/
+brainbox-client/.next/
+brainbox-client/.cache/
+brainbox-client/coverage/
+brainbox-client/.npm
+brainbox-client/.yarn
+
+#аутентификация
+brainbox-authentication/.env
+brainbox-authentication/venv/
+brainbox-authentication/__pycache__/
+brainbox-authentication/*/__pycache__/
+brainbox-authentication/api/routers/__pycache__/
+brainbox-authentication/.mypy_cache/
+brainbox-authentication/.pytest_cache/
+brainbox-authentication/.vscode/
+brainbox-authentication/*.pyc
+brainbox-authentication/*.pyo
+brainbox-authentication/*.pyd
+
+#IDE/Editor специфичные файлы
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+#логи и временные файлы
+*.log
+*.tmp

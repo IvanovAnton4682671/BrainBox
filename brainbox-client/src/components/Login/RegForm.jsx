@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import { FaArrowAltCircleRight } from "react-icons/fa";
 import styles from "./Forms.module.css";
 
@@ -35,7 +36,7 @@ function RegForm({ isAnim, handleArrowClick, handleAuthentication }) {
     }
   }, [password, passwordTouched]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setEmailTouched(true);
@@ -61,9 +62,32 @@ function RegForm({ isAnim, handleArrowClick, handleAuthentication }) {
 
       alert(alertText);
       return;
+    } else {
+      try {
+        const response = await axios.post(
+          "http://localhost:8001/auth/register",
+          {
+            email: email,
+            name: name,
+            password: password,
+          }
+        );
+
+        if (response.status === 200) {
+          handleAuthentication(true);
+        } else if (response.status === 202) {
+          alert(
+            "Пользователь с такими данными уже существует!",
+            response.message
+          );
+          console.log(response.message);
+          return;
+        }
+      } catch (error) {
+        alert("Произошла ошибка!");
+        console.error("Ошибка при выполнении регистрации: ", error);
+      }
     }
-    alert("Форма успешно отправлена!");
-    handleAuthentication(true);
   };
 
   return (
