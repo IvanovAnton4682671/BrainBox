@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "axios";
+import { userRegister } from "../../../utils/API/User";
 import { FaArrowAltCircleRight } from "react-icons/fa";
 import styles from "./Forms.module.css";
 
@@ -45,16 +45,13 @@ function RegForm({ isAnim, handleArrowClick, handleAuthentication }) {
 
     if (!emailValid || !nameValid || !passwordValid) {
       var alertText = "";
-
       if (!emailValid) {
         alertText += "\nВведите корректный email-адрес!";
       }
-
       if (!nameValid) {
         alertText +=
           "\nИмя в системе может состоять из латинских букв и цифр, а также иметь длину от 1 до 20 символов!";
       }
-
       if (!passwordValid) {
         alertText +=
           "\nПароль должен содержать минимум 1 строчную латинскую букву; 1 заглавную латинскую букву; 1 цифру; 1 специальный знак; быть от 5 до 20 символов!";
@@ -62,31 +59,15 @@ function RegForm({ isAnim, handleArrowClick, handleAuthentication }) {
 
       alert(alertText);
       return;
-    } else {
-      try {
-        const response = await axios.post(
-          "http://localhost:8001/auth/register",
-          {
-            email: email,
-            name: name,
-            password: password,
-          }
-        );
+    }
 
-        if (response.status === 200) {
-          handleAuthentication(true);
-        } else if (response.status === 202) {
-          alert(
-            "Пользователь с такими данными уже существует!",
-            response.message
-          );
-          console.log(response.message);
-          return;
-        }
-      } catch (error) {
-        alert("Произошла ошибка!");
-        console.error("Ошибка при выполнении регистрации: ", error);
-      }
+    const result = await userRegister(email, name, password);
+    if (result.success) {
+      console.log("Успех: ", result.message);
+      handleAuthentication(true);
+    } else {
+      console.error(`Ошибка ${result.error.code}: `, result.error.message);
+      alert(result.error.message);
     }
   };
 

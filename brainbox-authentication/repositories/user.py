@@ -56,7 +56,10 @@ class UserRepository:
             return UserInDB.model_validate(created_user) if created_user else None
         except IntegrityError as e:
             await self.session.rollback()
-            return None
+            raise IntegrityError({
+                "code": "register_integrity_error",
+                "message": "Нарушение целостности БД при попытке создать пользователя!"
+            })
 
     async def update_last_login(self, user_id: int) -> None:
         """

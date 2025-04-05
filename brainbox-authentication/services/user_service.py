@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from repositories.user import UserRepository
-from schemas.user import UserCreate, UserResponse, UserInDB
+from schemas.user import UserCreate, UserResponse, UserInDB, UserAuth
 from typing import Optional
+from core.errors import BusinessError
 from core.security import verify_password
 
 class UserService:
@@ -16,23 +17,38 @@ class UserService:
         Регистрация нового пользователя
         """
         if await self.repo.get_by_email(user_data.email):
-            return None
+            raise BusinessError({
+                "code": "email_exists",
+                "message": "Пользователь с такой почтой уже существует!"
+            })
         if await self.repo.get_by_name(user_data.name):
-            return None
+            raise BusinessError({
+                "code": "name_exists",
+                "message": "Пользователь с таким именем уже существует!"
+            })
         user = await self.repo.create(user_data)
         if not user:
-            return None
+            raise BusinessError({
+                "code": "user_has_not_been_created",
+                "message": "Пользователь не создан!"
+            })
         return user
 
-    async def auth_user(self, user_email: str, user_password: str) -> Optional[UserInDB]:
+    async def auth_user(self, user_data: UserAuth) -> Optional[UserInDB]:
         """
         Авторизация пользователя
         """
-        user = await self.repo.get_by_email(user_email)
+        user = await self.repo.get_by_email(user_data.email)
         if not user:
-            return None
-        if not verify_password(user_password, user.password_hash):
-            return None
+            raise BusinessError({
+                "code": "email_does_not_exist",
+                "message": "Пользователь с такой почтой не существует!"
+            })
+        if not verify_password(user_data.password, user.password_hash):
+            raise BusinessError({
+                "code": "wrong_password",
+                "message": "Неверный пароль!"
+            })
         await self.repo.update_last_login(user.id)
         return user
 
@@ -42,5 +58,8 @@ class UserService:
         """
         user = await self.repo.get_by_id(user_id)
         if not user:
-            return None
+            raise BusinessError({
+                "code": "user_not_found",
+                "message": "Пользователь не найден!"
+            })
         return user

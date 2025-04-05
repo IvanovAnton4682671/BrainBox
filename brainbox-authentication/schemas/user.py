@@ -1,32 +1,76 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
+from email_validator import validate_email
+from core.errors import ValidationError
 from datetime import datetime
 
-class UserBase(BaseModel):
+class UserEmail(BaseModel):
     """
-    Базовая схема с общими полями пользователя
+    Базовая схема с почтой пользователя
     Не используется напрямую, только для наследования
-    """
-    email: EmailStr = Field(
+    """ 
+    email: str = Field(
         ...,
         description="Уникальная почта пользователя"
     )
+
+    @field_validator("email")
+    def my_validate_email(cls, v: str) -> str:
+        """
+        Своя валидация почты
+        """
+        if not v or not v.strip():
+            raise ValidationError({
+                "code": "empty_email",
+                "message": "Почта не может быть пустой!"
+            })
+        try:
+            validate_email(v)
+        except ValueError:
+            raise ValidationError({
+                "code": "invalid_email_format",
+                "message": "Некорректный формат почты!"
+            })
+        return v
+
+class UserName(BaseModel):
+    """
+    Базовая схема с именем пользователя
+    Не используется напрямую, только для наследования
+    """
     name: str = Field(
         ...,
-        min_length=1,
-        max_length=20,
         description="Уникальное имя пользователя",
-        pattern=r"^[a-zA-Z0-9]+$"
     )
 
-class UserCreate(UserBase):
+    @field_validator("name")
+    def validate_name(cls, v: str) -> str:
+        """
+        Своя валидация имени
+        """
+        if not v or not v.strip():
+            raise ValidationError({
+                "code": "empty_name",
+                "message": "Имя не может быть пустым!"
+            })
+        if len(v) < 1 or len(v) > 20:
+            raise ValidationError({
+                "code": "invalid_name_length",
+                "message": "Имя должно быть от 1 до 20 символов!"
+            })
+        if not v.isalnum():
+            raise ValidationError({
+                "code": "invalid_name",
+                "message": "Имя должно содержать только латинские буквы и цифры!"
+            })
+        return v
+
+class UserAuth(UserEmail):
     """
-    Схема для регистрации нового пользователя
+    Схема для авторизации пользователя
     Добавляет валидацию пароля до хэширования (потому что у пароля сложный паттерн regex)
     """
     password: str = Field(
         ...,
-        min_length=5,
-        max_length=20,
         description="Пароль пользователя (до хэширования)"
     )
 
@@ -35,17 +79,46 @@ class UserCreate(UserBase):
         """
         Своя валидация пароля
         """
+        if not v or not v.strip():
+            raise ValidationError({
+                "code": "empty_password",
+                "message": "Пароль не может быть пустым!"
+            })
+            
+        if len(v) < 5 or len(v) > 20:
+            raise ValidationError({
+                "code": "invalid_password_length",
+                "message": "Пароль должен быть от 5 до 20 символов!"
+            })
         if not any(c.islower() for c in v):
-            raise ValueError("Пароль должен содержать минимум 1 строчную латинскую букву!")
+            raise ValidationError({
+                "code": "weak_password",
+                "message": "Пароль должен содержать минимум 1 строчную латинскую букву!"
+            })
         if not any(c.isupper() for c in v):
-            raise ValueError("Пароль должен содержать минимум 1 заглавную латинскую букву!")
+            raise ValidationError({
+                "code": "weak_password",
+                "message": "Пароль должен содержать минимум 1 заглавную латинскую букву!"
+            })
         if not any(c.isdigit() for c in v):
-            raise ValueError("Пароль должен содержать минимум 1 цифру!")
+            raise ValidationError({
+                "code": "weak_password",
+                "message": "Пароль должен содержать минимум 1 цифру!"
+            })
         if not any(not c.isalnum() for c in v):
-            raise ValueError("Пароль должен содержать минимум 1 спецсимвол!")
+            raise ValidationError({
+                "code": "weak_password",
+                "message": "Пароль должен содержать минимум 1 спецсимвол!"
+            })
         return v
 
-class UserResponse(UserBase):
+class UserCreate(UserAuth, UserName):
+    """
+    Схема для регистрации нового пользователя
+    """
+    pass
+
+class UserResponse(UserEmail, UserName):
     """
     Схема для ответа API, содержит только безопасные данные
     """

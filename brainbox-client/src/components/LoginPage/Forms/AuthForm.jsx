@@ -1,4 +1,5 @@
 import React from "react";
+import { userLogin } from "../../../utils/API/User";
 import { FaArrowAltCircleLeft } from "react-icons/fa";
 import styles from "./Forms.module.css";
 
@@ -25,7 +26,7 @@ function AuthForm({ isAnim, handleArrowClick, handleAuthentication }) {
     }
   }, [password, passwordTouched]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setEmailTouched(true);
@@ -33,11 +34,9 @@ function AuthForm({ isAnim, handleArrowClick, handleAuthentication }) {
 
     if (!emailValid || !passwordValid) {
       var alertText = "";
-
       if (!emailValid) {
         alertText += "\nВведите корректный email-адрес!";
       }
-
       if (!passwordValid) {
         alertText +=
           "\nПароль должен содержать минимум 1 строчную латинскую букву; 1 заглавную латинскую букву; 1 цифру; 1 специальный знак; быть от 5 до 20 символов!";
@@ -46,8 +45,15 @@ function AuthForm({ isAnim, handleArrowClick, handleAuthentication }) {
       alert(alertText);
       return;
     }
-    alert("Форма успешно отправлена!");
-    handleAuthentication(true);
+
+    const result = await userLogin(email, password);
+    if (result.success) {
+      console.log("Успех: ", result.message);
+      handleAuthentication(true);
+    } else {
+      console.error(`Ошибка ${result.error.code}: `, result.error.message);
+      alert(result.error.message);
+    }
   };
 
   return (

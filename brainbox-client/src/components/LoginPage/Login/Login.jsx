@@ -1,6 +1,6 @@
 import React from "react";
-import RegForm from "./RegForm";
-import AuthForm from "./AuthForm";
+import RegForm from "../Forms/RegForm";
+import AuthForm from "../Forms/AuthForm";
 import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
 import styles from "./Login.module.css";

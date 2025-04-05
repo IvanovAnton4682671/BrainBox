@@ -1,8 +1,8 @@
 import React from "react";
-import Header from "./Header";
-import SideMenu from "./SideMenu";
-import Chat from "./Chat";
-import { useChat } from "../../utils/ChatContext";
+import Header from "../Header/Header";
+import SideMenu from "../SideMenu/SideMenu";
+import Chat from "../Chat/Chat";
+import { useChat } from "../../../utils/StateManager/ChatContext";
 import styles from "./Home.module.css";
 
 function Home({ handleAuthentication }) {

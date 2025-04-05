@@ -1,5 +1,5 @@
 import React from "react";
-import { useChat } from "../../utils/ChatContext";
+import { useChat } from "../../../utils/StateManager/ChatContext";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
 import { MdArrowUpward } from "react-icons/md";
