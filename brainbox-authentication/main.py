@@ -1,9 +1,13 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from database.database import create_tables
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import authentication
 import uvicorn
+from core.logger import setup_logger
+import time
+
+logger = setup_logger("http")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +35,35 @@ app.add_middleware(
 
 #подключение роутера
 app.include_router(authentication.router)
+
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    """
+    Метод для логирования всех http-запросов
+    """
+    start_time = time.time()
+    logger.info(f"Attempt request: {request.method} {request.url}")
+    try:
+        response = await call_next(request)
+        process_time = (time.time() - start_time) * 1000
+        logger.info(
+            f"Response: {request.method} {request.url}"
+            f" Status: {response.status_code}"
+            f" Time: {process_time:.2f}ms"
+        )
+        return response
+    except Exception as e:
+        process_time = (time.time() - start_time) * 1000
+        logger.error(
+            f"Request failed: {request.method} {request.url}"
+            f" Error: {str(e)}"
+            f" Time: {process_time:.2f}ms",
+            exc_info=True
+        )
+        return Response(
+            content=f"Internal server error: {str(e)}",
+            status_code=500
+        )
 
 @app.get("/")
 async def root():

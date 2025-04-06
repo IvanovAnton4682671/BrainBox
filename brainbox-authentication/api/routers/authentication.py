@@ -3,7 +3,7 @@ from core.errors import error_handler
 from schemas.user import UserCreate, UserAuth
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.database import get_db
-from services.user_service import UserService
+from services.user import UserService
 
 router = APIRouter(
     prefix="/auth",
