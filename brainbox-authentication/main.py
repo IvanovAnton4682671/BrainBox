@@ -1,6 +1,4 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
-from database.database import create_tables
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import authentication
 import uvicorn
@@ -8,16 +6,6 @@ from core.logger import setup_logger
 import time
 
 logger = setup_logger("http")
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Создание таблиц при старте (временное решение до Alembic)
-    """
-    print("Creating tables...")
-    await create_tables()
-    yield
-    print("Shutting down...")
 
 app = FastAPI(
     title="BrainBox Authentication Service",

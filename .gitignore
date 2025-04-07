@@ -22,6 +22,7 @@ brainbox-client/.yarn
 brainbox-authentication/.env
 brainbox-authentication/venv/
 brainbox-authentication/logs/
+brainbox-authentication/alembic/versions/__pycache__/
 brainbox-authentication/__pycache__/
 brainbox-authentication/*/__pycache__/
 brainbox-authentication/api/routers/__pycache__/

@@ -26,7 +26,10 @@ class UserRepository:
             query = select(User).where(User.id == user_id)
             result = await self.session.execute(query)
             user = result.scalars().first()
-            logger.info(f"Пользователь получен: id - {user.id}")
+            if user:
+                logger.info(f"Пользователь получен: id - {user.id}")
+            else:
+                logger.warning(f"Пользователь не получен!")
             return UserInDB.model_validate(user) if user else None
         except Exception as e:
             logger.error(f"Ошибка при получении пользователя по id: {str(e)}", exc_info=True)
@@ -41,7 +44,10 @@ class UserRepository:
             query = select(User).where(User.email == user_email)
             result = await self.session.execute(query)
             user = result.scalars().first()
-            logger.info(f"Пользователь получен: id - {user.id}")
+            if user:
+                logger.info(f"Пользователь получен: id - {user.id}")
+            else:
+                logger.warning(f"Пользователь не получен!")
             return UserInDB.model_validate(user) if user else None
         except Exception as e:
             logger.error(f"Ошибка при получении пользователя по email: {str(e)}", exc_info=True)
@@ -56,7 +62,10 @@ class UserRepository:
             query = select(User).where(User.name == user_name)
             result = await self.session.execute(query)
             user = result.scalars().first()
-            logger.info(f"Пользователь получен: id - {user.id}")
+            if user:
+                logger.info(f"Пользователь получен: id - {user.id}")
+            else:
+                logger.warning(f"Пользователь не получен!")
             return UserInDB.model_validate(user) if user else None
         except Exception as e:
             logger.error(f"Ошибка при получении пользователя по name: {str(e)}", exc_info=True)
@@ -76,7 +85,10 @@ class UserRepository:
                 result = await self.session.execute(stmt)
                 await self.session.commit()
                 created_user = result.scalars().first()
-                logger.info(f"Пользователь создан: id - {created_user.id}")
+                if created_user:
+                    logger.info(f"Пользователь создан: id - {created_user.id}")
+                else:
+                    logger.warning(f"Пользователь не создан!")
                 return UserInDB.model_validate(created_user) if created_user else None
             except IntegrityError as e:
                 await self.session.rollback()
@@ -95,9 +107,17 @@ class UserRepository:
         """
         try:
             logger.info(f"Попытка обновить время входа в аккаунт: id - {user_id}")
-            stmt = update(User).where(User.id == user_id).values(last_login=func.now())
-            await self.session.execute(stmt)
-            await self.session.commit()
-            logger.info(f"Время входа обновлено: id - {user_id}")
+            try:
+                stmt = update(User).where(User.id == user_id).values(last_login=func.now())
+                await self.session.execute(stmt)
+                await self.session.commit()
+                logger.info(f"Время входа обновлено: id - {user_id}")
+            except IntegrityError as e:
+                await self.session.rollback()
+                logger.warning(f"Нарушение целостности БД при попытке обновить время входа в аккаунт: id - {user_id}")
+                raise IntegrityError({
+                    "code": "update_ll_integrity_error",
+                    "message": "НАрушение целостности БД при попытке обновить время входа в аккаунт!"
+                })
         except Exception as e:
             logger.error(f"Ошибка при обновлении времени входа в аккаунт: id - {user_id}")
