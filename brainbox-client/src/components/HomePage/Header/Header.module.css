@@ -54,6 +54,10 @@
   font-size: 40px;
 }
 
+.userName {
+  color: #ffffff;
+}
+
 .buttonExit {
   display: flex;
   align-items: center;

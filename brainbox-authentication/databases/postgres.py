@@ -8,7 +8,7 @@ Base = declarative_base() #для объявления моделей
 
 #настройка подключения к БД
 engine = create_async_engine( #асинхронное подключение
-    settings.DATABASE_URL,
+    settings.POSTGRES_URL,
     echo=settings.APP_DEBUG, #логировать sql-запросы
     future=True, #использовать новые возможности SQLAlchemy 2.0
     pool_pre_ping=True #проверить соединение перед использованием

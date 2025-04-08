@@ -2,17 +2,21 @@ import React from "react";
 import Header from "../Header/Header";
 import SideMenu from "../SideMenu/SideMenu";
 import Chat from "../Chat/Chat";
-import { useChat } from "../../../utils/StateManager/ChatContext";
+import { useChat } from "../../../utils/stateManager/chatContext";
+import { useAuth } from "../../../utils/hooks/useAuth";
 import styles from "./Home.module.css";
 
-function Home({ handleAuthentication }) {
+function Home({ handleLogout }) {
   //получаем поле activeService из контекста
   const { activeService } = useChat();
+
+  //получаем имя текущего пользователя
+  const { userName } = useAuth();
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <Header handleAuthentication={handleAuthentication} />
+        <Header handleLogout={handleLogout} userName={userName} />
       </div>
       <div className={styles.homeBody}>
         <div className={styles.sideMenu}>

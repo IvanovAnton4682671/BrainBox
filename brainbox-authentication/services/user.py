@@ -34,14 +34,23 @@ class UserService:
                     "message": "Пользователь с таким именем уже существует!"
                 })
             user = await self.repo.create(user_data)
-            logger.info(f"Пользователь создан: id - {user.id}")
             if not user:
                 logger.warning(f"Пользователь не создан!")
                 raise BusinessError({
                     "code": "user_has_not_been_created",
                     "message": "Пользователь не создан!"
                 })
-            return user
+            sessionid = await self.repo.create_session(user.id)
+            if not sessionid:
+                logger.warning(f"Сессия не создана!")
+                raise BusinessError({
+                    "code": "sessionid_has_not_been_created",
+                    "message": "Сессия не создана!"
+                })
+            return {
+                "user": user,
+                "sessionid": sessionid
+            }
         except Exception as e:
             logger.error(f"Ошибка при регистрации: {str(e)}", exc_info=True)
             raise
@@ -67,7 +76,17 @@ class UserService:
                 })
             await self.repo.update_last_login(user.id)
             logger.info(f"Пользователь найден: id - {user.id}")
-            return user
+            sessionid = await self.repo.create_session(user.id)
+            if not sessionid:
+                logger.warning(f"Сессия не создана!")
+                raise BusinessError({
+                    "code": "sessionid_has_not_been_created",
+                    "message": "Сессия не создана!"
+                })
+            return {
+                "user": user,
+                "sessionid": sessionid
+            }
         except Exception as e:
             logger.error(f"Ошибка при авторизации: {str(e)}", exc_info=True)
             raise
@@ -89,4 +108,16 @@ class UserService:
             return user
         except Exception as e:
             logger.error(f"Ошибка при получении профиля: {str(e)}", exc_info=True)
+            raise
+
+    async def logout_user(self, sessionid: str) -> None:
+        """
+        Удаление сессии пользователя
+        """
+        try:
+            logger.info(f"Попытка удалить сессию.")
+            await self.repo.delete_session(sessionid)
+            logger.info(f"Сессия удалена: sessionid - {sessionid}")
+        except Exception as e:
+            logger.error(f"Ошибка при удалении сессии sessionid - {sessionid}: {str(e)}", exc_info=True)
             raise

@@ -5,7 +5,7 @@ import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
 import styles from "./Login.module.css";
 
-function Login({ handleAuthentication }) {
+function Login() {
   const [isSwitched, setIsSwitched] = React.useState(true);
   const [isAnim, setIsAnim] = React.useState(false);
 
@@ -29,17 +29,9 @@ function Login({ handleAuthentication }) {
       </div>
       <div className={styles.rightPart}>
         {isSwitched ? (
-          <RegForm
-            isAnim={isAnim}
-            handleArrowClick={handleArrowClick}
-            handleAuthentication={handleAuthentication}
-          />
+          <RegForm isAnim={isAnim} handleArrowClick={handleArrowClick} />
         ) : (
-          <AuthForm
-            isAnim={isAnim}
-            handleArrowClick={handleArrowClick}
-            handleAuthentication={handleAuthentication}
-          />
+          <AuthForm isAnim={isAnim} handleArrowClick={handleArrowClick} />
         )}
       </div>
     </div>

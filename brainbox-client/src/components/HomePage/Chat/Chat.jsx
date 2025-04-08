@@ -2,7 +2,7 @@ import React from "react";
 import ChatMessageZone from "../ChatZones/ChatMessageZone";
 import ChatAudioZone from "../ChatZones/ChatAudioZone";
 import ChatInputZone from "../ChatZones/ChatInputZone";
-import { useChat } from "../../../utils/StateManager/ChatContext";
+import { useChat } from "../../../utils/stateManager/chatContext";
 import styles from "./Chat.module.css";
 
 function Chat() {

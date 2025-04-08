@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import authentication
 import uvicorn
 from core.logger import setup_logger
 import time
+from databases.redis import redis
 
 logger = setup_logger("http")
 
@@ -15,7 +16,7 @@ app = FastAPI(
 #настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +33,20 @@ async def log_request(request: Request, call_next):
     start_time = time.time()
     logger.info(f"Attempt request: {request.method} {request.url}")
     try:
+        sessionid = request.cookies.get("sessionid")
+        if sessionid:
+            user_id = await redis.get(f"session:{sessionid}")
+            if not user_id:
+                response = Response(status_code=401)
+                response.delete_cookie("sessionid")
+                process_time = (time.time() - start_time) * 1000
+                logger.warning(
+                    f"Invalid session: {request.method} {request.url}"
+                    f" Status: {response.status_code}"
+                    f" Time: {process_time:.2f}ms"
+                )
+                return response
+            request.state.user_id = int(user_id)
         response = await call_next(request)
         process_time = (time.time() - start_time) * 1000
         logger.info(
@@ -48,6 +63,13 @@ async def log_request(request: Request, call_next):
             f" Time: {process_time:.2f}ms",
             exc_info=True
         )
+        if isinstance(e, HTTPException) and e.status_code == 401:
+            response = Response(
+                content=f"Auth error: {str(e)}",
+                status_code=401
+            )
+            response.delete_cookie("sessionid")
+            return response
         return Response(
             content=f"Internal server error: {str(e)}",
             status_code=500

@@ -1,16 +1,16 @@
 import React from "react";
 import Login from "./components/LoginPage/Login/Login";
 import Home from "./components/HomePage/Home/Home";
-import { ChatProvider } from "./utils/StateManager/ChatContext";
+import { ChatProvider } from "./utils/stateManager/chatContext";
+import { useAuth } from "./utils/hooks/useAuth";
+import { AuthProvider } from "./utils/stateManager/authContext";
 
-function App() {
-  //состояние аутентификации: true = пользователь вошёл в систему
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+function AppContent() {
+  const { isAuthenticated, isSessionChecked, logout } = useAuth();
 
-  //обработчик изменения статуса аутентификации
-  const handleAuthentication = (isAuth) => {
-    setIsAuthenticated(isAuth);
-  };
+  if (!isSessionChecked) {
+    return <div>Проверка сессии...</div>;
+  }
 
   return (
     <div>
@@ -19,15 +19,23 @@ function App() {
         <ChatProvider>
           {/*
              ChatProvider делает состояние чатов доступным для всех компонентов внутри
-             handleAuthentication передаётся для реализации выхода из системы
+             handleLogout передаётся для реализации выхода из системы
           */}
-          <Home handleAuthentication={handleAuthentication} />
+          <Home handleLogout={logout}></Home>
         </ChatProvider>
       ) : (
         /*компонент авторизации для неавторизованных пользователей*/
-        <Login handleAuthentication={handleAuthentication} />
+        <Login />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

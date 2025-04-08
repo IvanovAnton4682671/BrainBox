@@ -1,9 +1,11 @@
 import React from "react";
-import { userLogin } from "../../../utils/API/User";
 import { FaArrowAltCircleLeft } from "react-icons/fa";
+import { useAuth } from "../../../utils/hooks/useAuth";
 import styles from "./Forms.module.css";
 
-function AuthForm({ isAnim, handleArrowClick, handleAuthentication }) {
+function AuthForm({ isAnim, handleArrowClick }) {
+  const { login } = useAuth();
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [emailValid, setEmailValid] = React.useState(false);
@@ -46,12 +48,9 @@ function AuthForm({ isAnim, handleArrowClick, handleAuthentication }) {
       return;
     }
 
-    const result = await userLogin(email, password);
-    if (result.success) {
-      console.log("Успех: ", result.message);
-      handleAuthentication(true);
-    } else {
-      console.error(`Ошибка ${result.error.code}: `, result.error.message);
+    const result = await login(email, password);
+    if (!result.success) {
+      console.error(`Ошибка ${result.error.code}: ${result.error.message}`);
       alert(result.error.message);
     }
   };

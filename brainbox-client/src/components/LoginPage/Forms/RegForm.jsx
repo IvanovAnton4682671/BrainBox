@@ -1,9 +1,11 @@
 import React from "react";
-import { userRegister } from "../../../utils/API/User";
 import { FaArrowAltCircleRight } from "react-icons/fa";
+import { useAuth } from "../../../utils/hooks/useAuth";
 import styles from "./Forms.module.css";
 
-function RegForm({ isAnim, handleArrowClick, handleAuthentication }) {
+function RegForm({ isAnim, handleArrowClick }) {
+  const { register } = useAuth();
+
   const [email, setEmail] = React.useState("");
   const [name, setName] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -61,12 +63,9 @@ function RegForm({ isAnim, handleArrowClick, handleAuthentication }) {
       return;
     }
 
-    const result = await userRegister(email, name, password);
-    if (result.success) {
-      console.log("Успех: ", result.message);
-      handleAuthentication(true);
-    } else {
-      console.error(`Ошибка ${result.error.code}: `, result.error.message);
+    const result = await register(email, name, password);
+    if (!result.success) {
+      console.error(`Ошибка ${result.error.code}: ${result.error.message}`);
       alert(result.error.message);
     }
   };

@@ -7,6 +7,9 @@ from core.security import get_password_hash
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 from core.logger import setup_logger
+from databases.redis import redis
+import uuid
+from datetime import timedelta
 
 logger = setup_logger("repositories/user.py")
 
@@ -32,7 +35,7 @@ class UserRepository:
                 logger.warning(f"Пользователь не получен!")
             return UserInDB.model_validate(user) if user else None
         except Exception as e:
-            logger.error(f"Ошибка при получении пользователя по id: {str(e)}", exc_info=True)
+            logger.error(f"Ошибка при получении пользователя по id - {user_id}: {str(e)}", exc_info=True)
             raise
 
     async def get_by_email(self, user_email: str) -> Optional[UserInDB]:
@@ -50,7 +53,7 @@ class UserRepository:
                 logger.warning(f"Пользователь не получен!")
             return UserInDB.model_validate(user) if user else None
         except Exception as e:
-            logger.error(f"Ошибка при получении пользователя по email: {str(e)}", exc_info=True)
+            logger.error(f"Ошибка при получении пользователя по email - {user_email}: {str(e)}", exc_info=True)
             raise
 
     async def get_by_name(self, user_name: str) -> Optional[UserInDB]:
@@ -68,7 +71,7 @@ class UserRepository:
                 logger.warning(f"Пользователь не получен!")
             return UserInDB.model_validate(user) if user else None
         except Exception as e:
-            logger.error(f"Ошибка при получении пользователя по name: {str(e)}", exc_info=True)
+            logger.error(f"Ошибка при получении пользователя по name - {user_name}: {str(e)}", exc_info=True)
             raise
 
     async def create(self, user_data: UserCreate) -> Optional[UserInDB]:
@@ -98,7 +101,7 @@ class UserRepository:
                     "message": "Нарушение целостности БД при попытке создать пользователя!"
                 })
         except Exception as e:
-            logger.error(f"Ошибка при создании пользователя: {str(e)}", exc_info=True)
+            logger.error(f"Ошибка при создании пользователя email - {user_data.email}: {str(e)}", exc_info=True)
             raise
 
     async def update_last_login(self, user_id: int) -> None:
@@ -117,7 +120,57 @@ class UserRepository:
                 logger.warning(f"Нарушение целостности БД при попытке обновить время входа в аккаунт: id - {user_id}")
                 raise IntegrityError({
                     "code": "update_ll_integrity_error",
-                    "message": "НАрушение целостности БД при попытке обновить время входа в аккаунт!"
+                    "message": "Нарушение целостности БД при попытке обновить время входа в аккаунт!"
                 })
         except Exception as e:
-            logger.error(f"Ошибка при обновлении времени входа в аккаунт: id - {user_id}")
+            logger.error(f"Ошибка при обновлении времени входа в аккаунт id - {user_id}: {str(e)}", exc_info=True)
+            raise
+
+    async def create_session(self, user_id: int, session_ttl: int = 86400) -> str:
+        """
+        Создание сессии в Redis
+        """
+        try:
+            logger.info(f"Пробуем удалить старые сессии пользователя: id - {user_id}")
+            keys = await redis.keys(f"session:*_{user_id}_*")
+            if keys:
+                logger.info(f"Удаляем сессии keys - {keys}")
+                await redis.delete(*keys)
+            logger.info(f"Попытка создать сессию для пользователя: id - {user_id}")
+            sessionid = f"session_{user_id}_{uuid.uuid4()}"
+            await redis.setex(f"session:{sessionid}", timedelta(seconds=session_ttl), user_id)
+            logger.info(f"Сессия успешно создана.")
+            return sessionid
+        except Exception as e:
+            logger.error(f"Ошибка при создании сессии для пользователя id - {user_id}: {str(e)}", exc_info=True)
+            raise
+
+    async def get_user_id_by_session(self, sessionid: str) -> Optional[int]:
+        """
+        Проверка сессии и возврат user_id
+        """
+        try:
+            logger.info(f"Попытка получить id по sessionid.")
+            user_id = await redis.get(f"session:{sessionid}")
+            if user_id:
+                logger.info(f"Id - {user_id} успешно получено.")
+            else:
+                logger.warning(f"Id не получен.")
+            return int(user_id) if user_id else None
+        except Exception as e:
+            logger.error(f"Ошибка при поиске id по sessionid - {sessionid}: {str(e)}", exc_info=True)
+            raise
+
+    async def delete_session(self, sessionid: int) -> None:
+        """
+        Удаление сессии
+        """
+        try:
+            logger.info(f"Попытка удалить сессию.")
+            deleted = await redis.delete(f"session:{sessionid}")
+            if not deleted:
+                logger.warning(f"Сессия не найдена: sessionid - {sessionid}")
+            logger.info(f"Сессия с sessionid - {sessionid} была удалена.")
+        except Exception as e:
+            logger.error(f"Ошибка при удалении сессии по sessionid - {sessionid}: {str(e)}", exc_info=True)
+            raise

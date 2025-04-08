@@ -1,5 +1,5 @@
 import React from "react";
-import { useChat } from "../../../utils/StateManager/ChatContext";
+import { useChat } from "../../../utils/stateManager/chatContext";
 import styles from "./SideMenu.module.css";
 
 //Статический список сервисов вынесен за пределы компонента:

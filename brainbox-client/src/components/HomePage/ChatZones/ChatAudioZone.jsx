@@ -1,5 +1,5 @@
 import React from "react";
-import { useChat } from "../../../utils/StateManager/ChatContext";
+import { useChat } from "../../../utils/stateManager/chatContext";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./ChatAudioZone.module.css";
 

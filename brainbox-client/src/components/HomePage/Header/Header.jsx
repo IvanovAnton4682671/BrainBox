@@ -4,10 +4,15 @@ import { BsBox2 } from "react-icons/bs";
 import { IoPersonCircleSharp } from "react-icons/io5";
 import styles from "./Header.module.css";
 
-function Header({ handleAuthentication }) {
-  const handleConfirmExit = () => {
+function Header({ handleLogout, userName }) {
+  const handleConfirmExit = async () => {
     if (window.confirm("Вы уверены, что хотите выйти из аккаунта?")) {
-      handleAuthentication(false);
+      const success = await handleLogout();
+      if (success) {
+        window.location.reload();
+      } else {
+        alert("Не удалось выйти из системы!");
+      }
     }
   };
 
@@ -22,9 +27,9 @@ function Header({ handleAuthentication }) {
       </div>
       <div className={styles.person}>
         <IoPersonCircleSharp className={styles.personIcon} />
+        <span className={styles.userName}>Привет, {userName}</span>
         <button
           type="button"
-          /*прокинутый метод из App для выхода из аккаунта*/
           onClick={handleConfirmExit}
           className={styles.buttonExit}
         >
