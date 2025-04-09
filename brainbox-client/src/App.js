@@ -1,6 +1,7 @@
 import React from "react";
 import Login from "./components/LoginPage/Login/Login";
 import Home from "./components/HomePage/Home/Home";
+import Loading from "./components/LoadingPage/Loading";
 import { ChatProvider } from "./utils/stateManager/chatContext";
 import { useAuth } from "./utils/hooks/useAuth";
 import { AuthProvider } from "./utils/stateManager/authContext";
@@ -9,7 +10,7 @@ function AppContent() {
   const { isAuthenticated, isSessionChecked, logout } = useAuth();
 
   if (!isSessionChecked) {
-    return <div>Проверка сессии...</div>;
+    return <Loading />;
   }
 
   return (
