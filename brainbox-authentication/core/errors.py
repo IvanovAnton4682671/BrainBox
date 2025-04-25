@@ -1,7 +1,8 @@
 from functools import wraps
 from fastapi import HTTPException, status
+from fastapi.exceptions import RequestValidationError
 
-class ValidationError(ValueError):
+class ValidationError(RequestValidationError):
     """
     Класс для ошибок валидации (422 Unprocessable Entity)
     """
@@ -11,6 +12,7 @@ class BusinessError(ValueError):
     """
     Класс для бизнес-ошибок (400 Bad Request)
     """
+    pass
 
 def error_handler(func):
     """

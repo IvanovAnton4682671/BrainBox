@@ -8,3 +8,6 @@ CREATE TABLE users(
 );
 
 docker run --name brainbox-redis -d -p 6379:6379 redis:alpine
+docker exec -it brainbox-redis redis-cli
+hgetall *
+exit

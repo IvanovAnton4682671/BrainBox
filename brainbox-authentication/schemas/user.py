@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
-from email_validator import validate_email
+from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 from core.errors import ValidationError
 from datetime import datetime
 from core.logger import setup_logger
@@ -31,7 +31,13 @@ class UserEmail(BaseModel):
                 })
             try:
                 validate_email(v)
-            except ValueError:
+            except EmailUndeliverableError as e:
+                logger.warning(f"Некорректный домен почты: email - {v}")
+                raise ValidationError({
+                    "code": "invalid_email_domain",
+                    "message": "Некорректный домен почты!"
+                })
+            except EmailNotValidError as e:
                 logger.warning(f"Некорректный формат почты: email - {v}")
                 raise ValidationError({
                     "code": "invalid_email_format",
