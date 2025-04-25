@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routers import authentication
 import uvicorn
 from core.logger import setup_logger
+from core.errors import handle_request_validation_error
 import time
 from databases.redis import redis
+from fastapi.exceptions import RequestValidationError
 
 logger = setup_logger("http")
 
@@ -24,6 +26,9 @@ app.add_middleware(
 
 #подключение роутера
 app.include_router(authentication.router)
+
+#дополнительный обработчик ошибок
+app.add_exception_handler(RequestValidationError, handle_request_validation_error)
 
 @app.middleware("http")
 async def log_request(request: Request, call_next):
