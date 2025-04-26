@@ -25,13 +25,20 @@ brainbox-authentication/logs/
 brainbox-authentication/alembic/versions/__pycache__/
 brainbox-authentication/__pycache__/
 brainbox-authentication/*/__pycache__/
-brainbox-authentication/api/routers/__pycache__/
+brainbox-authentication/*/*/__pycache__/
 brainbox-authentication/.mypy_cache/
 brainbox-authentication/.pytest_cache/
 brainbox-authentication/.vscode/
 brainbox-authentication/*.pyc
 brainbox-authentication/*.pyo
 brainbox-authentication/*.pyd
+
+#gateway
+brainbox-gateway/.env
+brainbox-gateway/venv/
+brainbox-gateway/logs/
+brainbox-gateway/__pycache__/
+brainbox-gateway/*/__pycache__/
 
 #IDE/Editor специфичные файлы
 .vscode/

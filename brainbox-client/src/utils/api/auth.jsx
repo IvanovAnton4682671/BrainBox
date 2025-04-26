@@ -1,11 +1,12 @@
 import axios from "axios";
 
-const AUTH_URL = "http://localhost:8001/auth";
+const GATEWAY_URL = "http://localhost:8000/auth";
 
 //настройка для автоматической отправки кук
 axios.defaults.withCredentials = true;
 
 const handleError = (error) => {
+  console.error(error);
   if (error.response?.data?.detail?.error) {
     return {
       success: error.response.data.detail.success,
@@ -23,7 +24,7 @@ const handleError = (error) => {
 
 export const userRegister = async (email, name, password) => {
   try {
-    const response = await axios.post(`${AUTH_URL}/register`, {
+    const response = await axios.post(`${GATEWAY_URL}/register`, {
       email: email,
       name: name,
       password: password,
@@ -36,7 +37,7 @@ export const userRegister = async (email, name, password) => {
 
 export const userLogin = async (email, password) => {
   try {
-    const response = await axios.post(`${AUTH_URL}/login`, {
+    const response = await axios.post(`${GATEWAY_URL}/login`, {
       email: email,
       password: password,
     });
@@ -48,7 +49,7 @@ export const userLogin = async (email, password) => {
 
 export const checkSession = async () => {
   try {
-    const response = await axios.get(`${AUTH_URL}/check-session`);
+    const response = await axios.get(`${GATEWAY_URL}/check-session`);
     return response.data;
   } catch (error) {
     return handleError(error);
@@ -57,7 +58,7 @@ export const checkSession = async () => {
 
 export const userLogout = async () => {
   try {
-    const response = await axios.post(`${AUTH_URL}/logout`);
+    const response = await axios.post(`${GATEWAY_URL}/logout`);
     return response.data;
   } catch (error) {
     return handleError(error);

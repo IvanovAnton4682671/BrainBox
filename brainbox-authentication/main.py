@@ -18,7 +18,7 @@ app = FastAPI(
 #настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,4 +85,5 @@ async def root():
     return {"message": "BrainBox Authentication Service is running..., for help: http://localhost:8001/docs"}
 
 if __name__ == "__main__":
+    logger.info("Authentication Service запущен!")
     uvicorn.run("main:app", host="localhost", port=8001, reload=True)
