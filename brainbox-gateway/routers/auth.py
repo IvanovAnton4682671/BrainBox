@@ -16,9 +16,9 @@ async def _process_auth_response(auth_response: httpx.Response, response: Respon
     if "set-cookie" in auth_response.headers:
         response.headers["set-cookie"] = auth_response.headers["set-cookie"]
     response_data = auth_response.json() #получаем данные как есть
-    detail = response_data.get("detail")
     #если есть ошибка - возвращаем её как есть
     if auth_response.is_error:
+        detail = response_data.get("detail")
         raise HTTPException(
             status_code=auth_response.status_code,
             detail={

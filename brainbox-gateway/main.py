@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.logger import setup_logger
-from routers import auth
+from routers import auth, neural
 import uvicorn
 
 logger = setup_logger("http")
@@ -14,17 +14,18 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[settings.CLIENT_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(auth.router)
+app.include_router(neural.router)
 
 @app.get("/")
 async def root():
-    return {"message": "BrainBox API Gateway is running..., for help http://localhost:8000/docs"}
+    return {"message": "BrainBox API Gateway is running..."}
 
 if __name__ == "__main__":
     logger.info("API Gateway запущен!")

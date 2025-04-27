@@ -1,19 +1,35 @@
 import React from "react";
 import { useChat } from "../../../utils/stateManager/chatContext";
+import { recognizeAudio } from "../../../utils/api/neural";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./ChatAudioZone.module.css";
 
-function ChatAudioZone({ handleMessages }) {
+function ChatAudioZone() {
   //получаем поле и метод из состояния
-  const { activeService, deleteChat } = useChat();
+  const { activeService, deleteChat, sendMessage } = useChat();
 
-  //обработка отправки аудиосообщения через родительский метод взаимодействия с контекстом
-  const handleAudioFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      handleMessages({
-        text: file.name,
-        isAudio: true,
+  //обработка отправки аудио-сообщения через родительский метод взаимодействия с контекстом
+  const handleAudioFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !activeService) {
+      return;
+    }
+    sendMessage({
+      text: file.name,
+      isAudio: true,
+      type: "user",
+    });
+    try {
+      const result = await recognizeAudio(file);
+      sendMessage({
+        text: result.text,
+        type: "response",
+      });
+    } catch (error) {
+      alert(error);
+      sendMessage({
+        text: error,
+        type: "response",
       });
     }
   };
@@ -32,7 +48,7 @@ function ChatAudioZone({ handleMessages }) {
     <div className={styles.wrapper}>
       <div className={styles.buttonUpload}>
         <label htmlFor="audio-upload" className={styles.uploadButton}>
-          Загрузить аудиофайл
+          Загрузить аудио-файл
         </label>
         <input
           id="audio-upload"

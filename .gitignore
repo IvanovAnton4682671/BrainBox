@@ -40,6 +40,14 @@ brainbox-gateway/logs/
 brainbox-gateway/__pycache__/
 brainbox-gateway/*/__pycache__/
 
+#neural
+brainbox-neural/.env
+brainbox-neural/venv/
+brainbox-neural/logs/
+brainbox-neural/__pycache__/
+brainbox-neural/*/__pycache__/
+brainbox-neural/*/*/__pycache__/
+
 #IDE/Editor специфичные файлы
 .vscode/
 .idea/

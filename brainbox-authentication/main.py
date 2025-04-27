@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import authentication
+from core.config import settings
 import uvicorn
 from core.logger import setup_logger
 from core.errors import handle_request_validation_error
@@ -82,8 +83,8 @@ async def log_request(request: Request, call_next):
 
 @app.get("/")
 async def root():
-    return {"message": "BrainBox Authentication Service is running..., for help: http://localhost:8001/docs"}
+    return {"message": "BrainBox Authentication Service is running..."}
 
 if __name__ == "__main__":
     logger.info("Authentication Service запущен!")
-    uvicorn.run("main:app", host="localhost", port=8001, reload=True)
+    uvicorn.run("main:app", host=settings.AUTHORIZATION_HOST, port=settings.AUTHORIZATION_PORT, reload=True)

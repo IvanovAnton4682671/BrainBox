@@ -3,6 +3,11 @@ from pydantic import Field
 from typing import Optional
 
 class Settings(BaseSettings): #для загрузки и валидации переменных окружения
+    #настройки сервиса
+    AUTHORIZATION_HOST: str = Field(..., min_length=1)
+    AUTHORIZATION_PORT: int = Field(..., ge=1, le=65535)
+    APP_DEBUG: bool = False
+
     #настройки БД PostgreSQL
     POSTGRES_HOST: str = Field(..., min_length=1)
     POSTGRES_PORT: int = Field(..., ge=1, le=65535)
@@ -24,8 +29,6 @@ class Settings(BaseSettings): #для загрузки и валидации п�
     @classmethod
     def assemble_redis_connection(cls, values: dict) -> str:
         return f"redis://{values['REDIS_HOST']}:{values['REDIS_PORT']}/{values['REDIS_DB']}"
-
-    APP_DEBUG: bool = False
 
     #указывает на .env-файл и чувствителен к регистру, а также игнорирует лишние переменные
     class Config:
