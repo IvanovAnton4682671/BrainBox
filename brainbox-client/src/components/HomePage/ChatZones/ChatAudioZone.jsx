@@ -18,19 +18,18 @@ function ChatAudioZone() {
       text: file.name,
       isAudio: true,
       type: "user",
+      createdAt: new Date().toISOString(),
     });
     try {
       const result = await recognizeAudio(file);
       sendMessage({
         text: result.text,
         type: "response",
+        createdAt: new Date().toISOString(),
       });
     } catch (error) {
-      alert(error);
-      sendMessage({
-        text: error,
-        type: "response",
-      });
+      console.error("Ошибка при отправке сообщения: ", error);
+      throw error;
     }
   };
 

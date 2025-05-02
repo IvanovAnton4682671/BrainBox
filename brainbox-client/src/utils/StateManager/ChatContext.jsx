@@ -34,6 +34,23 @@ const chatReducer = (state, action) => {
     case "LOAD_CHATS":
       //загрузка чатов: заменяем текущие чаты сохраненными данными
       return { ...state, chats: action.payload };
+    case "LOAD_SERVER_CHATS":
+      if (!action.payload?.messages) return state;
+      const sortedMessages = [...action.payload.messages].sort(
+        (a, b) => new Date(a.created_at) - new Date(b.created_at)
+      );
+      return {
+        ...state,
+        chats: {
+          ...state.chats,
+          speechToText: sortedMessages.map((msg) => ({
+            text: msg.message_text,
+            isAudio: Boolean(msg.audio_uid),
+            type: msg.is_from_user ? "user" : "response",
+            createdAt: msg.created_at,
+          })),
+        },
+      };
     default:
       return state;
   }
@@ -70,6 +87,8 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: "SEND_MESSAGE", payload: message }),
     deleteChat: (serviceId) =>
       dispatch({ type: "DELETE_CHAT", payload: serviceId }),
+    loadServerChats: (serverData) =>
+      dispatch({ type: "LOAD_SERVER_CHATS", payload: serverData }),
   };
 
   //возвращаем провайдер с передачей контекста

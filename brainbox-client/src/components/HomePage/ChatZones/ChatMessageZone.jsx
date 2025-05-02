@@ -13,6 +13,17 @@ function ChatMessageZone({ messages }) {
     }
   }, [messages]);
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.messageBox} ref={messageBoxRef}>
@@ -27,6 +38,9 @@ function ChatMessageZone({ messages }) {
           >
             {message.isAudio && <FaFileAudio className={styles.audioImg} />}
             {message.text}
+            <span className={styles.messageDate}>
+              {message.createdAt && formatDate(message.createdAt)}
+            </span>
           </div>
         ))}
       </div>

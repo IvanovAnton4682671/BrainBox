@@ -7,7 +7,18 @@ CREATE TABLE users(
 	last_login TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::TIMESTAMP NOT NULL
 );
 
+CREATE TABLE audio_chat(
+	id SERIAL PRIMARY KEY,
+	user_id INT NOT NULL,
+	is_from_user BOOLEAN NOT NULL,
+	message_text TEXT NOT NULL,
+	audio_uid VARCHAR(36),
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::TIMESTAMP NOT NULL
+);
+
 docker run --name brainbox-redis -d -p 6379:6379 redis:alpine
 docker exec -it brainbox-redis redis-cli
-hgetall *
+scan 0
 exit
+
+docker run --name brainbox-minio -d -p 9000:9000 -p 9001:9001 minio/minio server /data --console-address ":9001"

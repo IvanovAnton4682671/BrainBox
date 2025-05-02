@@ -36,3 +36,10 @@
 .audioImg {
   font-size: 25px;
 }
+
+.messageDate {
+  display: block;
+  text-align: right;
+  margin-top: 7px;
+  color: #726b6b;
+}

@@ -21,3 +21,18 @@ export const recognizeAudio = async (file) => {
     throw error;
   }
 };
+
+export const getAudioMessages = async () => {
+  try {
+    const response = await axios.get(`${GATEWAY_URL}/get-audio-messages`, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting audio messages: ", error);
+    throw error;
+  }
+};

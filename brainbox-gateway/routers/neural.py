@@ -30,6 +30,13 @@ async def _process_neural_response(neural_response: httpx.Response, response: Re
 
 @router.post("/recognize-audio")
 async def recognize_audio(file: UploadFile, request: Request, response: Response):
+    headers = { "X-Session-ID": request.cookies.get("sessionid") }
     file_contents = await file.read()
-    neural_response = await neural_service.recognize_audio(file_contents, file.filename)
+    neural_response = await neural_service.recognize_audio(headers, file_contents, file.filename)
+    return await _process_neural_response(neural_response, response)
+
+@router.get("/get-audio-messages")
+async def get_audio_messages(request: Request, response: Response):
+    headers = { "X-Session-ID": request.cookies.get("sessionid") }
+    neural_response = await neural_service.get_audio_messages(headers)
     return await _process_neural_response(neural_response, response)
