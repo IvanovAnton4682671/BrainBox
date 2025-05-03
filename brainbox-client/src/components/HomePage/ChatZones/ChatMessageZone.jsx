@@ -1,5 +1,6 @@
 import React from "react";
 import { FaFileAudio } from "react-icons/fa";
+import { downloadAudio } from "../../../utils/api/neural";
 import styles from "./ChatMessageZone.module.css";
 
 function ChatMessageZone({ messages }) {
@@ -24,6 +25,15 @@ function ChatMessageZone({ messages }) {
     });
   };
 
+  const handleDownload = async (audio_uid, filename) => {
+    try {
+      await downloadAudio(audio_uid, filename);
+    } catch (error) {
+      console.error("Handle download error: ", error);
+      throw error;
+    }
+  };
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.messageBox} ref={messageBoxRef}>
@@ -38,6 +48,14 @@ function ChatMessageZone({ messages }) {
           >
             {message.isAudio && <FaFileAudio className={styles.audioImg} />}
             {message.text}
+            {message.audio_uid && (
+              <button
+                onClick={() => handleDownload(message.audio_uid, message.text)}
+                className={styles.downloadButton}
+              >
+                Скачать
+              </button>
+            )}
             <span className={styles.messageDate}>
               {message.createdAt && formatDate(message.createdAt)}
             </span>

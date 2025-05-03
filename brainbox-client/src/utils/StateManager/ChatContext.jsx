@@ -47,6 +47,7 @@ const chatReducer = (state, action) => {
             text: msg.message_text,
             isAudio: Boolean(msg.audio_uid),
             type: msg.is_from_user ? "user" : "response",
+            audio_uid: msg.audio_uid,
             createdAt: msg.created_at,
           })),
         },

@@ -53,21 +53,22 @@ class AudioService:
             logger.error(f"Ошибка при сохранении системного ответа: {str(e)}", exc_info=True)
             raise
 
-    async def process_audio_message(self, user_id: int, file_data: bytes, file_name: str) -> AudioUploadResponse:
+    async def recognize_saved_audio(self, user_id: int, audio_uid: str) -> AudioUploadResponse:
+        """
+        Распознаёт уже сохранённый файл
+        """
         try:
-            #сохраняем аудио-файл в MinIO
-            audio_uid = await audio_storage.upload_audio(file_data)
+            #получение информации о сообщении из БД
+            message = await self.repo.get_message_by_uid(audio_uid)
+            if not message or message.user_id != user_id:
+                raise ValueError("Audio message not found or access denied")
+            #скачивание файла из MinIO
+            audio_data = await audio_storage.download_audio(audio_uid)
+            #определение расширения файла
+            file_extension = os.path.splitext(message.message_text)[1][1:] if "." in message.message_text else ".mp3"
             #распознаём текст
-            file_extension = os.path.splitext(file_name)[1][1:]
-            recognition_result = self._recognize_audio(file_data, file_extension)
+            recognition_result = self._recognize_audio(audio_data, file_extension)
             recognition_text = recognition_result["text"]
-            #сохраняем запись пользователя
-            await self.repo.create_message(AudioMessageCreate(
-                user_id=user_id,
-                is_from_user=True,
-                message_text=file_name,
-                audio_uid=audio_uid
-            ))
             #сохраняем системный ответ
             await self._save_system_response(user_id, recognition_text)
             return AudioUploadResponse(
@@ -76,4 +77,5 @@ class AudioService:
                 audio_uid=audio_uid
             )
         except Exception as e:
-            logger.error(f"При распознавании произошла ошибка: {str(e)}", exc_info=True)
+            logger.error(f"При распознавании аудио-файла произошла ошибка: {str(e)}", exc_info=True)
+            raise

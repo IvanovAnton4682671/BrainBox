@@ -37,6 +37,23 @@
   font-size: 25px;
 }
 
+.downloadButton {
+  display: block;
+  margin-top: 7px;
+  border: none;
+  border-radius: 20px;
+  background-color: #000000;
+  color: #ffffff;
+  font-family: "Microsoft YaHei UI";
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #555555;
+  }
+}
+
 .messageDate {
   display: block;
   text-align: right;

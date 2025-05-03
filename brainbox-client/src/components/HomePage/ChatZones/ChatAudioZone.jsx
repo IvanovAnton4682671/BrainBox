@@ -1,35 +1,53 @@
 import React from "react";
 import { useChat } from "../../../utils/stateManager/chatContext";
-import { recognizeAudio } from "../../../utils/api/neural";
+import { uploadAudio, recognizeSavedAudio } from "../../../utils/api/neural";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./ChatAudioZone.module.css";
 
 function ChatAudioZone() {
   //получаем поле и метод из состояния
   const { activeService, deleteChat, sendMessage } = useChat();
+  //статус обработки отправленного аудио-файла
+  const [isUploading, setIsUploading] = React.useState(false);
 
   //обработка отправки аудио-сообщения через родительский метод взаимодействия с контекстом
-  const handleAudioFileUpload = async (e) => {
+  const handleAudioUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !activeService) {
       return;
     }
-    sendMessage({
-      text: file.name,
-      isAudio: true,
-      type: "user",
-      createdAt: new Date().toISOString(),
-    });
+    setIsUploading(true);
     try {
-      const result = await recognizeAudio(file);
+      //загрузка файла
+      const uploadResult = await uploadAudio(file);
+      if (!uploadResult.audio_uid) {
+        throw Error(
+          "Incorrect uploadResult.audio_uid = ",
+          uploadResult.audio_uid
+        );
+      }
+      //рендер пользовательского сообщения после успешной загрузки
       sendMessage({
-        text: result.text,
+        text: uploadResult.filename,
+        isAudio: true,
+        type: "user",
+        audio_uid: uploadResult.audio_uid,
+        createdAt: new Date().toISOString(),
+      });
+      //сразу запрос на распознавание отправленного файла
+      const recognitionResult = await recognizeSavedAudio(
+        uploadResult.audio_uid
+      );
+      sendMessage({
+        text: recognitionResult.text,
         type: "response",
         createdAt: new Date().toISOString(),
       });
     } catch (error) {
-      console.error("Ошибка при отправке сообщения: ", error);
+      console.error("Handle audio upload error: ", error);
       throw error;
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -47,14 +65,15 @@ function ChatAudioZone() {
     <div className={styles.wrapper}>
       <div className={styles.buttonUpload}>
         <label htmlFor="audio-upload" className={styles.uploadButton}>
-          Загрузить аудио-файл
+          {isUploading ? "Загрузка..." : "Отправить аудио-файл"}
         </label>
         <input
           id="audio-upload"
           type="file"
           accept="audio/*"
+          onChange={handleAudioUpload}
+          disabled={isUploading}
           style={{ display: "none" }}
-          onChange={handleAudioFileUpload}
         />
       </div>
       <div className={styles.buttonDeleteChat} onClick={handleDeleteChat}>
