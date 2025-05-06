@@ -60,3 +60,9 @@ async def download_audio(request: Request, audio_uid: str, response: Response):
         media_type=neural_response.headers.get("content-type", "audio/mpeg"),
         headers=dict(neural_response.headers)
     )
+
+@router.delete("/delete-audio-messages")
+async def delete_audio_messages(request: Request, response: Response):
+    headers = { "X-Session-ID": request.cookies.get("sessionid") }
+    neural_response = await neural_service.delete_audio_messages(headers)
+    return await _process_neural_response(neural_response, response)

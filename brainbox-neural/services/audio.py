@@ -79,3 +79,23 @@ class AudioService:
         except Exception as e:
             logger.error(f"При распознавании аудио-файла произошла ошибка: {str(e)}", exc_info=True)
             raise
+
+    async def delete_user_messages(self, user_id: int) -> dict:
+        """
+        Удаляет всю историю чата
+        """
+        try:
+            messages = await self.repo.get_user_messages(user_id)
+            if not messages:
+                return { "success": True }
+            for msg in messages:
+                if msg.audio_uid:
+                    audio_storage.client.remove_object(
+                        audio_storage.bucket,
+                        str(msg.audio_uid)
+                    )
+            await self.repo.delete_user_messages(user_id)
+            return { "success": True }
+        except Exception as e:
+            logger.error(f"Ошибка при удалении истории чата: {str(e)}", exc_info=True)
+            raise

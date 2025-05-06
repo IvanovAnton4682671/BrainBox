@@ -74,3 +74,21 @@ export const downloadAudio = async (audio_uid, filename) => {
     throw error;
   }
 };
+
+export const deleteAudioMessages = async () => {
+  try {
+    const response = await axios.delete(
+      `${GATEWAY_URL}/delete-audio-messages`,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Delete audio messages error: ", error);
+    throw error;
+  }
+};

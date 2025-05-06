@@ -39,3 +39,16 @@ class AudioRepository:
         result = await self.session.execute(query)
         message = result.scalars().first()
         return AudioMessageResponse.model_validate(message) if message else None
+
+    async def delete_user_messages(self, user_id: int) -> None:
+        try:
+            messages = self.get_user_messages(user_id)
+            if not messages:
+                return
+            query = AudioMessage.__table__.delete().where(AudioMessage.user_id == user_id)
+            await self.session.execute(query)
+            await self.session.commit()
+            return
+        except Exception as e:
+            await self.session.rollback()
+            raise

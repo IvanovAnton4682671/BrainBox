@@ -83,3 +83,14 @@ async def download_audio(audio_uid: str, request: Request, db: AsyncSession = De
         )
     except Exception as e:
         raise
+
+@router.delete("/delete-audio-messages")
+async def delete_audio_messages(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
+    try:
+        session_id = request.headers.get("x-session-id")
+        user_id = await auth_service.get_user_id(session_id)
+        audio_service = AudioService(db)
+        result = await audio_service.delete_user_messages(user_id)
+        return result
+    except Exception as e:
+        raise

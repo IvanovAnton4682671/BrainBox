@@ -43,4 +43,11 @@ class NeuralService:
             headers=headers
         )
 
+    async def delete_audio_messages(self, headers: dict):
+        logger.info("Получен /delete-audio-messages запрос для сервиса нейросетей!")
+        return await self.client.delete(
+            f"{self.base_url}/delete-audio-messages",
+            headers=headers
+        )
+
 neural_service = NeuralService()

@@ -1,6 +1,10 @@
 import React from "react";
 import { useChat } from "../../../utils/stateManager/chatContext";
-import { uploadAudio, recognizeSavedAudio } from "../../../utils/api/neural";
+import {
+  uploadAudio,
+  recognizeSavedAudio,
+  deleteAudioMessages,
+} from "../../../utils/api/neural";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./ChatAudioZone.module.css";
 
@@ -52,12 +56,19 @@ function ChatAudioZone() {
   };
 
   //удаление истории чата через состояние после подтверждения
-  const handleDeleteChat = () => {
-    if (
-      activeService &&
-      window.confirm("Вы уверены, что хотите удалить текущий чат?")
-    ) {
-      deleteChat(activeService);
+  const handleDeleteChat = async () => {
+    try {
+      if (
+        activeService &&
+        window.confirm("Вы уверены, что хотите удалить текущий чат?")
+      ) {
+        await deleteAudioMessages();
+        deleteChat(activeService);
+        alert("Чат успешно удалён!");
+      }
+    } catch (error) {
+      console.error("Handle delete chat error: ", error);
+      throw error;
     }
   };
 
