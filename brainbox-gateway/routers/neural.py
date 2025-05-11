@@ -3,6 +3,7 @@ from fastapi import APIRouter, UploadFile, Request, Response
 import httpx
 from interfaces.neural import neural_service
 from fastapi.exceptions import HTTPException
+from interfaces.tasks import create_audio_task, get_task_result
 
 logger = setup_logger("routers/neural.py")
 
@@ -39,11 +40,15 @@ async def upload_audio(file: UploadFile, request: Request, response: Response):
 
 @router.post("/recognize-saved-audio")
 async def recognize_saved_audio(request: Request, response: Response):
-    headers = { "X-Session-ID": request.cookies.get("sessionid") }
+    session_id = request.cookies.get("sessionid")
     request_data = await request.json()
     audio_uid = request_data.get("audio_uid")
-    neural_response = await neural_service.recognize_saved_audio(headers, audio_uid)
-    return await _process_neural_response(neural_response, response)
+    task_id = await create_audio_task(session_id, audio_uid)
+    return { "task_id": task_id }
+
+@router.get("/tasks/{task_id}")
+async def check_task_status(task_id: str):
+    return await get_task_result(task_id)
 
 @router.get("/get-audio-messages")
 async def get_audio_messages(request: Request, response: Response):

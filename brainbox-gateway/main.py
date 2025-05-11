@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.logger import setup_logger
 from routers import auth, neural
+from core.task_listener import start_listener_in_background
 import uvicorn
 
 logger = setup_logger("http")
@@ -30,3 +31,4 @@ async def root():
 if __name__ == "__main__":
     logger.info("API Gateway запущен!")
     uvicorn.run("main:app", host=settings.GATEWAY_HOST, port=settings.GATEWAY_PORT, reload=True)
+    start_listener_in_background()

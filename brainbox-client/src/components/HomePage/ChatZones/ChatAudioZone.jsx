@@ -3,6 +3,7 @@ import { useChat } from "../../../utils/stateManager/chatContext";
 import {
   uploadAudio,
   recognizeSavedAudio,
+  checkTaskStatus,
   deleteAudioMessages,
 } from "../../../utils/api/neural";
 import { FaRegTrashAlt } from "react-icons/fa";
@@ -13,6 +14,16 @@ function ChatAudioZone() {
   const { activeService, deleteChat, sendMessage } = useChat();
   //статус обработки отправленного аудио-файла
   const [isUploading, setIsUploading] = React.useState(false);
+  //интервал опроса task_id
+  const intervalRef = React.useRef();
+
+  React.useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   //обработка отправки аудио-сообщения через родительский метод взаимодействия с контекстом
   const handleAudioUpload = async (e) => {
@@ -39,14 +50,34 @@ function ChatAudioZone() {
         createdAt: new Date().toISOString(),
       });
       //сразу запрос на распознавание отправленного файла
-      const recognitionResult = await recognizeSavedAudio(
-        uploadResult.audio_uid
-      );
-      sendMessage({
-        text: recognitionResult.text,
-        type: "response",
-        createdAt: new Date().toISOString(),
-      });
+      const { task_id } = await recognizeSavedAudio(uploadResult.audio_uid);
+      let attempts = 0;
+      const maxAttempts = 60;
+      intervalRef.current = setInterval(async () => {
+        attempts++;
+        try {
+          const statusResponse = await checkTaskStatus(task_id);
+          if (statusResponse.status === "completed") {
+            clearInterval(intervalRef.current);
+            sendMessage({
+              text: statusResponse.result.text,
+              type: "response",
+              createdAt: new Date().toISOString(),
+            });
+          } else if (attempts >= maxAttempts) {
+            clearInterval(intervalRef.current);
+            sendMessage({
+              text: "Таймаут распознавания",
+              type: "response",
+              createdAt: new Date().toISOString(),
+            });
+          }
+        } catch (error) {
+          clearInterval(intervalRef.current);
+          console.error("Handle audio upload error: ", error);
+          throw error;
+        }
+      }, 1000);
     } catch (error) {
       console.error("Handle audio upload error: ", error);
       throw error;

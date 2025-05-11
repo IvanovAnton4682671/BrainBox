@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routers import neural
 import uvicorn
 from core.config import settings
+import subprocess
 
 logger = setup_logger("http")
 
@@ -27,4 +28,5 @@ async def root():
     return {"message": "BrainBox Neural Service is running..."}
 
 if __name__ == "__main__":
+    subprocess.Popen(["dramatiq", "worker"])
     uvicorn.run("main:app", host=settings.NEURAL_HOST, port=settings.NEURAL_PORT, reload=True)
