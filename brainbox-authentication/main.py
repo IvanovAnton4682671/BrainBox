@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from api.routers import authentication
+from routers import authentication
 from core.config import settings
 import uvicorn
 from core.logger import setup_logger

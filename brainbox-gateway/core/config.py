@@ -6,10 +6,6 @@ class Settings(BaseSettings):
     GATEWAY_HOST: str = Field(..., min_length=1)
     GATEWAY_PORT: int = Field(..., ge=1, le=65535)
 
-    CLIENT_URL: str = Field(..., min_length=1)
-
-    AUTH_SERVICE_URL: str = Field(..., min_length=1)
-
     RABBITMQ_URL: str = Field(..., min_length=1)
     RABBITMQ_AUDIO_REQUESTS: str = Field(..., min_length=1)
     RABBITMQ_AUDIO_RESPONSES: str = Field(..., min_length=1)
@@ -18,6 +14,10 @@ class Settings(BaseSettings):
     REDIS_PORT: int = Field(..., ge=1, le=65535)
     REDIS_DB: int = Field(..., ge=0, le=65535)
     REDIS_URL: Optional[str] = None
+
+    CLIENT_URL: str = Field(..., min_length=1)
+
+    AUTH_SERVICE_URL: str = Field(..., min_length=1)
 
     NEURAL_SERVICE_URL: str = Field(..., min_length=1)
 

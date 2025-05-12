@@ -2,7 +2,7 @@ from core.logger import setup_logger
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from core.config import settings
 import dramatiq
-from databases.postgres import async_session_maker
+from databases.postgresql import async_session_maker
 from databases.redis import redis
 from interfaces.auth import auth_service
 from services.audio import AudioService

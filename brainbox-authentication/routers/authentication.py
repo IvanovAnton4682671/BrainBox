@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Response, Request
 from core.errors import error_handler
 from schemas.user import UserCreate, UserAuth
 from sqlalchemy.ext.asyncio import AsyncSession
-from databases.postgres import get_db
+from databases.postgresql import get_db
 from services.user import UserService
 from core.logger import setup_logger
 

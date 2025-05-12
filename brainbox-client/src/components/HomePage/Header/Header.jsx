@@ -1,4 +1,3 @@
-import React from "react";
 import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
 import { IoPersonCircleSharp } from "react-icons/io5";

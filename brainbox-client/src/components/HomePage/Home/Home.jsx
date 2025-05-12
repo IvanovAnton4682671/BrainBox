@@ -4,7 +4,7 @@ import SideMenu from "../SideMenu/SideMenu";
 import Chat from "../Chat/Chat";
 import { useChat } from "../../../utils/stateManager/chatContext";
 import { useAuth } from "../../../utils/hooks/useAuth";
-import { getAudioMessages } from "../../../utils/api/neural";
+import { getAudioMessages } from "../../../utils/api/audio";
 import styles from "./Home.module.css";
 
 function Home({ handleLogout }) {

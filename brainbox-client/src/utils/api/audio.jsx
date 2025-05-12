@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const GATEWAY_URL = "http://localhost:8000/neural";
+const GATEWAY_URL = "http://localhost:8000/audio";
 
 //автоматическая отправка кук
 axios.defaults.withCredentials = true;

@@ -1,4 +1,4 @@
-from databases.postgres import Base
+from databases.postgresql import Base
 from sqlalchemy import Column, Integer, Boolean, String, DateTime
 from sqlalchemy.sql import func
 

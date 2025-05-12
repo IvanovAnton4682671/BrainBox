@@ -1,4 +1,3 @@
-import React from "react";
 import { useChat } from "../../../utils/stateManager/chatContext";
 import styles from "./SideMenu.module.css";
 

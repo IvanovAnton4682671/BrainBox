@@ -5,7 +5,7 @@ import {
   recognizeSavedAudio,
   checkTaskStatus,
   deleteAudioMessages,
-} from "../../../utils/api/neural";
+} from "../../../utils/api/audio";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./ChatAudioZone.module.css";
 

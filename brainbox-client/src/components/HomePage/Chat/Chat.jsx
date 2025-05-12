@@ -1,4 +1,3 @@
-import React from "react";
 import ChatMessageZone from "../ChatZones/ChatMessageZone";
 import ChatAudioZone from "../ChatZones/ChatAudioZone";
 import ChatInputZone from "../ChatZones/ChatInputZone";

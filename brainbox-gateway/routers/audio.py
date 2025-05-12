@@ -1,15 +1,15 @@
 from core.logger import setup_logger
 from fastapi import APIRouter, UploadFile, Request, Response
 import httpx
-from interfaces.neural import neural_service
+from interfaces.audio import neural_service
 from fastapi.exceptions import HTTPException
 from interfaces.tasks import create_audio_task, get_task_result
 
-logger = setup_logger("routers/neural.py")
+logger = setup_logger("routers/audio.py")
 
 router = APIRouter(
-    prefix="/neural",
-    tags=["Neural"]
+    prefix="/audio",
+    tags=["Audio"]
 )
 
 async def _process_neural_response(neural_response: httpx.Response, response: Response):

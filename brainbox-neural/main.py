@@ -1,7 +1,7 @@
 from core.logger import setup_logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routers import neural
+from routers import audio
 import uvicorn
 from core.config import settings
 import subprocess
@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(neural.router)
+app.include_router(audio.router)
 
 @app.get("/")
 async def root():

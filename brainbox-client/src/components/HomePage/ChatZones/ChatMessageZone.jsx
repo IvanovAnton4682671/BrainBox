@@ -1,6 +1,6 @@
 import React from "react";
 import { FaFileAudio } from "react-icons/fa";
-import { downloadAudio } from "../../../utils/api/neural";
+import { downloadAudio } from "../../../utils/api/audio";
 import styles from "./ChatMessageZone.module.css";
 
 function ChatMessageZone({ messages }) {

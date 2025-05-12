@@ -1,7 +1,7 @@
 from core.logger import setup_logger
 from fastapi import APIRouter, Request, UploadFile, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from databases.postgres import get_db
+from databases.postgresql import get_db
 from services.audio import AudioService
 from interfaces.auth import auth_service
 from repositories.audio import AudioRepository
@@ -9,11 +9,11 @@ from core.storage import audio_storage
 from schemas.audio import AudioMessageCreate
 from fastapi import Response
 
-logger = setup_logger("api/routers/neural.py")
+logger = setup_logger("api/routers/audio.py")
 
 router = APIRouter(
-    prefix="/neural",
-    tags=["Neural"]
+    prefix="/audio",
+    tags=["Audio"]
 )
 
 @router.post("/upload-audio")
