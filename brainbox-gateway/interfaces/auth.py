@@ -4,7 +4,7 @@ import httpx
 
 logger = setup_logger("interfaces/auth.py")
 
-class AuthService:
+class AuthInterface:
     def __init__(self):
         self.base_url = f"{settings.AUTH_SERVICE_URL}/auth"
         self.client = httpx.AsyncClient(timeout=30.0)
@@ -37,4 +37,4 @@ class AuthService:
             cookies=cookies
         )
 
-auth_service = AuthService()
+auth_interface = AuthInterface()

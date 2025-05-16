@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.audio import AudioMessageCreate, AudioMessageResponse
 from typing import Optional, List
-from sqlalchemy import insert, select, desc
+from sqlalchemy import select, desc
 from models.audio import AudioMessage
 from uuid import UUID
 

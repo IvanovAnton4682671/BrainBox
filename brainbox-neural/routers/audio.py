@@ -3,13 +3,13 @@ from fastapi import APIRouter, Request, UploadFile, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from databases.postgresql import get_db
 from services.audio import AudioService
-from interfaces.auth import auth_service
+from interfaces.auth import auth_interface
 from repositories.audio import AudioRepository
 from core.storage import audio_storage
 from schemas.audio import AudioMessageCreate
 from fastapi import Response
 
-logger = setup_logger("api/routers/audio.py")
+logger = setup_logger("routers/audio.py")
 
 router = APIRouter(
     prefix="/audio",
@@ -23,7 +23,7 @@ async def upload_audio(request: Request, file: UploadFile, db: AsyncSession = De
     """
     try:
         session_id = request.headers.get("x-session-id")
-        user_id = await auth_service.get_user_id(session_id)
+        user_id = await auth_interface.get_user_id(session_id)
         file_data = await file.read()
         audio_uid = await audio_storage.upload_audio(file_data)
         audio_repo = AudioRepository(db)
@@ -45,7 +45,7 @@ async def upload_audio(request: Request, file: UploadFile, db: AsyncSession = De
 async def recognize_saved_audio(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         session_id = request.headers.get("x-session-id")
-        user_id = await auth_service.get_user_id(session_id)
+        user_id = await auth_interface.get_user_id(session_id)
         audio_service = AudioService(db)
         request_data = await request.json()
         audio_uid = request_data.get("audio_uid")
@@ -57,7 +57,7 @@ async def recognize_saved_audio(request: Request, db: AsyncSession = Depends(get
 async def get_audio_messages(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         session_id = request.headers.get("x-session-id")
-        user_id = await auth_service.get_user_id(session_id)
+        user_id = await auth_interface.get_user_id(session_id)
         audio_repo = AudioRepository(db)
         messages = await audio_repo.get_user_messages(user_id)
         return { "success": True, "messages": messages }
@@ -68,7 +68,7 @@ async def get_audio_messages(request: Request, db: AsyncSession = Depends(get_db
 async def download_audio(audio_uid: str, request: Request, db: AsyncSession = Depends(get_db)):
     try:
         session_id = request.headers.get("x-session-id")
-        user_id = await auth_service.get_user_id(session_id)
+        user_id = await auth_interface.get_user_id(session_id)
         audio_repo = AudioRepository(db)
         message = await audio_repo.get_message_by_uid(audio_uid)
         if not message or message.user_id != user_id:
@@ -88,7 +88,7 @@ async def download_audio(audio_uid: str, request: Request, db: AsyncSession = De
 async def delete_audio_messages(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     try:
         session_id = request.headers.get("x-session-id")
-        user_id = await auth_service.get_user_id(session_id)
+        user_id = await auth_interface.get_user_id(session_id)
         audio_service = AudioService(db)
         result = await audio_service.delete_user_messages(user_id)
         return result

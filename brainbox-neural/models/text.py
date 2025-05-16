@@ -2,11 +2,11 @@ from databases.postgresql import Base
 from sqlalchemy import Column, Integer, Boolean, String, DateTime
 from sqlalchemy.sql import func
 
-class AudioMessage(Base):
+class TextMessage(Base):
     """
-    Модель запили таблицы audio_chat для SQLAlchemy
+    Модель записи таблицы text_chat для SQLAlchemy
     """
-    __tablename__ = "audio_chat"
+    __tablename__ = "text_chat"
 
     id = Column(
         Integer,
@@ -29,11 +29,6 @@ class AudioMessage(Base):
         nullable=False,
         comment="Текст сообщения"
     )
-    audio_uid = Column(
-        String(36),
-        nullable=True,
-        comment="Специальный ID аудио-файла"
-    )
     created_at = Column(
         DateTime(timezone=False),
         server_default=func.now(),
@@ -42,4 +37,13 @@ class AudioMessage(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<Message(id={self.id};user_id={self.user_id};system_answer={self.is_from_user});text={self.message_text};audio_path={self.audio_uid if self.audio_uid else "None"};created_at={self.created_at}>"
+        return f"<Message(id={self.id};user_id={self.user_id};system_answer={self.is_from_user});text={self.message_text};created_at={self.created_at}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "is_from_user": self.is_from_user,
+            "message_text": self.message_text,
+            "created_at": self.created_at
+        }

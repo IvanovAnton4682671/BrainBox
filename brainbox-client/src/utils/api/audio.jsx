@@ -54,7 +54,12 @@ export const getAudioMessages = async () => {
         "Content-Type": "application/json",
       },
     });
-    return response.data;
+    return {
+      messages: response.data.messages.map((msg) => ({
+        ...msg,
+        table: "audio_chat",
+      })),
+    };
   } catch (error) {
     console.error("Get audio messages error: ", error);
     throw error;

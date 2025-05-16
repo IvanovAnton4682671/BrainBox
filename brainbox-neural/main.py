@@ -1,7 +1,7 @@
 from core.logger import setup_logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import audio
+from routers import audio, text
 import uvicorn
 from core.config import settings
 import subprocess
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(audio.router)
+app.include_router(text.router)
 
 @app.get("/")
 async def root():

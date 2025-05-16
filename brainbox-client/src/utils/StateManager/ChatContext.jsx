@@ -35,23 +35,57 @@ const chatReducer = (state, action) => {
       //загрузка чатов: заменяем текущие чаты сохраненными данными
       return { ...state, chats: action.payload };
     case "LOAD_SERVER_CHATS":
-      if (!action.payload?.messages) return state;
-      const sortedMessages = [...action.payload.messages].sort(
-        (a, b) => new Date(a.created_at) - new Date(b.created_at)
-      );
-      return {
-        ...state,
-        chats: {
-          ...state.chats,
-          speechToText: sortedMessages.map((msg) => ({
+      const newState = { ...state };
+      if (action.payload.audioMessages) {
+        newState.chats.speechToText = (action.payload.audioMessages || [])
+          .filter((msg) => msg.table === "audio_chat") //только аудио-сообщения
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          .map((msg) => ({
             text: msg.message_text,
             isAudio: Boolean(msg.audio_uid),
             type: msg.is_from_user ? "user" : "response",
             audio_uid: msg.audio_uid,
             createdAt: msg.created_at,
-          })),
+          }));
+      }
+      if (action.payload.textMessages) {
+        newState.chats.chatBot = (action.payload.textMessages || [])
+          .filter((msg) => msg.table === "text_chat") //только текстовые сообщения
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          .map((msg) => ({
+            text: msg.message_text,
+            type: msg.is_from_user ? "user" : "response",
+            createdAt: msg.created_at,
+          }));
+      }
+      return newState;
+    /*if (!action.payload?.messages) return state;
+      const audioMessages = action.payload.messages
+        .filter((msg) => msg.table === "audio_chat") //только аудио-сообщения
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        .map((msg) => ({
+          text: msg.message_text,
+          isAudio: Boolean(msg.audio_uid),
+          type: msg.is_from_user ? "user" : "response",
+          audio_uid: msg.audio_uid,
+          createdAt: msg.created_at,
+        }));
+      const textMessages = action.payload.messages
+        .filter((msg) => msg.table === "text_chat") //только текстовые сообщения
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        .map((msg) => ({
+          text: msg.message_text,
+          type: msg.is_from_user ? "user" : "response",
+          createdAt: msg.created_at,
+        }));
+      return {
+        ...state,
+        chats: {
+          ...state.chats,
+          speechToText: audioMessages,
+          chatBot: textMessages,
         },
-      };
+      };*/
     default:
       return state;
   }

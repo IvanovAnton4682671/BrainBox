@@ -1,6 +1,7 @@
 import React from "react";
 import { FaFileAudio } from "react-icons/fa";
 import { downloadAudio } from "../../../utils/api/audio";
+import ReactMarkdown from "react-markdown";
 import styles from "./ChatMessageZone.module.css";
 
 function ChatMessageZone({ messages }) {
@@ -47,7 +48,7 @@ function ChatMessageZone({ messages }) {
             }
           >
             {message.isAudio && <FaFileAudio className={styles.audioImg} />}
-            {message.text}
+            <ReactMarkdown>{message.text}</ReactMarkdown>
             {message.audio_uid && (
               <button
                 onClick={() => handleDownload(message.audio_uid, message.text)}

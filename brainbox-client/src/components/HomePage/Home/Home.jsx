@@ -5,6 +5,7 @@ import Chat from "../Chat/Chat";
 import { useChat } from "../../../utils/stateManager/chatContext";
 import { useAuth } from "../../../utils/hooks/useAuth";
 import { getAudioMessages } from "../../../utils/api/audio";
+import { getTextMessages } from "../../../utils/api/text";
 import styles from "./Home.module.css";
 
 function Home({ handleLogout }) {
@@ -20,8 +21,10 @@ function Home({ handleLogout }) {
     if (!isMounted.current) {
       const fetchMessages = async () => {
         try {
-          const messages = await getAudioMessages();
-          loadServerChats(messages);
+          const audioMessages = await getAudioMessages();
+          loadServerChats({ audioMessages: audioMessages.messages });
+          const textMessages = await getTextMessages();
+          loadServerChats({ textMessages: textMessages.messages });
         } catch (error) {
           console.error("Ошибка загрузки сообщений: ", error);
         }

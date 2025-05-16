@@ -4,7 +4,7 @@ import httpx
 
 logger = setup_logger("interfaces/audio.py")
 
-class NeuralService:
+class AudioInterface:
     def __init__(self):
         self.base_url = f"{settings.NEURAL_SERVICE_URL}/audio"
         self.client = httpx.AsyncClient(timeout=60.0)
@@ -50,4 +50,4 @@ class NeuralService:
             headers=headers
         )
 
-neural_service = NeuralService()
+audio_interface = AudioInterface()

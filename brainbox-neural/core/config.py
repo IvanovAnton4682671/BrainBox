@@ -20,16 +20,19 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = False
     MINIO_BUCKET_AUDIO: str = Field(..., min_length=1)
 
+    REDIS_HOST: str = Field(..., min_length=1)
+    REDIS_PORT: int = Field(..., ge=1, le=65535)
+    REDIS_DB: int = Field(..., ge=0, le=65535)
+    REDIS_URL: Optional[str] = None
+
+    FOLDER_ID: str = Field(..., min_length=1)
+    OAUTH_TOKEN: str = Field(..., min_length=1)
+
     AUTH_SERVICE_URL: str = Field(..., min_length=1)
 
     RABBITMQ_URL: str = Field(..., min_length=1)
     RABBITMQ_AUDIO_REQUESTS: str = Field(..., min_length=1)
     RABBITMQ_AUDIO_RESPONSES: str = Field(..., min_length=1)
-
-    REDIS_HOST: str = Field(..., min_length=1)
-    REDIS_PORT: int = Field(..., ge=1, le=65535)
-    REDIS_DB: int = Field(..., ge=0, le=65535)
-    REDIS_URL: Optional[str] = None
 
     @classmethod
     def assemble_postgres_connection(cls, values: dict) -> str:

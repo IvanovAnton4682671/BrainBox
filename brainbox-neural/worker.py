@@ -4,7 +4,7 @@ from core.config import settings
 import dramatiq
 from databases.postgresql import async_session_maker
 from databases.redis import redis
-from interfaces.auth import auth_service
+from interfaces.auth import auth_interface
 from services.audio import AudioService
 import asyncio
 import json
@@ -25,7 +25,7 @@ def process_audio_task(task_id: str, *, session_id: str, audio_uid: str):
     async def async_task():
         async with async_session_maker() as db:
             try:
-                user_id = await auth_service.get_user_id(session_id)
+                user_id = await auth_interface.get_user_id(session_id)
                 audio_service = AudioService(db)
                 result = await audio_service.recognize_saved_audio(user_id, audio_uid)
                 await redis.setex(
