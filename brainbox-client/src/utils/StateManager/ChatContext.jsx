@@ -41,6 +41,7 @@ const chatReducer = (state, action) => {
           .filter((msg) => msg.table === "audio_chat") //только аудио-сообщения
           .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
           .map((msg) => ({
+            table: msg.table,
             text: msg.message_text,
             isAudio: Boolean(msg.audio_uid),
             type: msg.is_from_user ? "user" : "response",
@@ -53,6 +54,7 @@ const chatReducer = (state, action) => {
           .filter((msg) => msg.table === "text_chat") //только текстовые сообщения
           .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
           .map((msg) => ({
+            table: msg.table,
             text: msg.message_text,
             type: msg.is_from_user ? "user" : "response",
             createdAt: msg.created_at,

@@ -48,7 +48,11 @@ function ChatMessageZone({ messages }) {
             }
           >
             {message.isAudio && <FaFileAudio className={styles.audioImg} />}
-            <ReactMarkdown>{message.text}</ReactMarkdown>
+            {message.table === "text_chat" && message.type === "response" ? (
+              <ReactMarkdown>{message.text}</ReactMarkdown>
+            ) : (
+              message.text
+            )}
             {message.audio_uid && (
               <button
                 onClick={() => handleDownload(message.audio_uid, message.text)}
