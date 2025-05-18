@@ -1,13 +1,17 @@
 from core.logger import setup_logger
 from core.config import settings
-import httpx
+from httpx import AsyncClient, Timeout, Limits, AsyncHTTPTransport
 
 logger = setup_logger("interfaces/text.py")
 
 class TextInterface:
     def __init__(self):
         self.base_url = f"{settings.NEURAL_SERVICE_URL}/text"
-        self.client = httpx.AsyncClient(timeout=60.0)
+        self.client = AsyncClient(
+            timeout=Timeout(10.0),
+            limits=Limits(max_connections=100),
+            transport=AsyncHTTPTransport(retries=3)
+        )
 
     async def generate_answer(self, headers: dict, text: str):
         logger.info("Получен /generate-answer запрос для сервиса нейросетей!")

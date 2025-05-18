@@ -23,9 +23,7 @@ async def create_audio_task(session_id: str, audio_uid: str) -> str:
             "session_id": session_id,
             "audio_uid": audio_uid
         },
-        "options": {
-            "retry_limit": 3
-        }
+        "options": {"retry_limit": 3}
     }
     #отправляем в RabbitMQ
     rabbitmq.publish(
@@ -34,6 +32,6 @@ async def create_audio_task(session_id: str, audio_uid: str) -> str:
     )
     return task_id
 
-async def get_task_result(task_id: str) -> dict:
+async def get_audio_task_result(task_id: str) -> dict:
     result = await redis.get(f"audio_task_result:{task_id}")
     return { "status": "completed", "result": json.loads(result) } if result else { "status": "processing" }

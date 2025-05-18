@@ -6,46 +6,98 @@ from databases.postgresql import async_session_maker
 from databases.redis import redis
 from interfaces.auth import auth_interface
 from services.audio import AudioService
+from services.text import TextService
 import asyncio
 import json
 from dramatiq import Message
+from datetime import datetime
 
 logger = setup_logger("worker.py")
 
 broker = RabbitmqBroker(url=settings.RABBITMQ_URL)
 dramatiq.set_broker(broker)
 
+async def _process_task_result(task_id: str, result: dict, response_queue: str):
+    """
+    Общая функция для сохранения результатов и отправки ответов
+    """
+    def json_serializer(obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Type {type(obj)} неправильный")
+
+    queue_type = str(response_queue.split("_")[0])
+    await redis.setex(
+        name=f"{queue_type}_task_result:{task_id}",
+        time=3600,
+        value=json.dumps(result.model_dump(), default=json_serializer)
+    )
+    message = Message(
+        queue_name=response_queue,
+        actor_name=f"handle_{queue_type}_result",
+        args=[task_id],
+        kwargs={"status": "completed"},
+        options={}
+    )
+    broker.enqueue(message)
+
 @dramatiq.actor(queue_name=settings.RABBITMQ_AUDIO_REQUESTS)
 def process_audio_task(task_id: str, *, session_id: str, audio_uid: str):
     """
-    Обработчик задач. Получает:
+    Обработчик аудио-задач. Получает:
         task_id как позиционный аргумент
         session_id, audio_uid как именованные аргументы
     """
     async def async_task():
-        async with async_session_maker() as db:
-            try:
+        try:
+            #создаём новый event loop если нужно
+            loop = asyncio.get_event_loop()
+            if loop.is_closed():
+                asyncio.set_event_loop(asyncio.new_event_loop())
+            async with async_session_maker() as session:
                 user_id = await auth_interface.get_user_id(session_id)
-                audio_service = AudioService(db)
+                audio_service = AudioService(session)
                 result = await audio_service.recognize_saved_audio(user_id, audio_uid)
-                await redis.setex(
-                    name=f"audio_task_result:{task_id}",
-                    time=3600,
-                    value=json.dumps(result.model_dump())
+                await _process_task_result(
+                    task_id,
+                    result,
+                    settings.RABBITMQ_AUDIO_RESPONSES
                 )
-                message = Message(
-                    queue_name=settings.RABBITMQ_AUDIO_RESPONSES,
-                    actor_name="handle_audio_result",
-                    args=[task_id],
-                    kwargs={ "status": "completed" },
-                    options={}
+        except Exception as e:
+            logger.error(f"Ошибка при выполнении аудио-задачи: {str(e)}", exc_info=True)
+            raise
+    asyncio.run(async_task())
+
+@dramatiq.actor(queue_name=settings.RABBITMQ_TEXT_REQUESTS)
+def process_text_task(task_id: str, *, session_id: str, message_text: str):
+    """
+    Обработчик текстовых задач. Получает:
+        task_id как позиционный аргумент
+        session_id, message_text как именованные аргументы
+    """
+    async def async_task():
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_closed():
+                asyncio.set_event_loop(asyncio.new_event_loop())
+            async with async_session_maker() as session:
+                user_id = await auth_interface.get_user_id(session_id)
+                text_service = TextService(session)
+                result = await text_service.create_answer(user_id, message_text)
+                await _process_task_result(
+                    task_id,
+                    result,
+                    settings.RABBITMQ_TEXT_RESPONSES
                 )
-                broker.enqueue(message)
-            except Exception as e:
-                logger.error(f"Ошибка при выполнении задачи воркером: {str(e)}", exc_info=True)
-                raise
+        except Exception as e:
+            logger.error(f"Ошибка при выполнении текстовой задачи: {str(e)}", exc_info=True)
+            raise
     asyncio.run(async_task())
 
 @dramatiq.actor(queue_name=settings.RABBITMQ_AUDIO_RESPONSES)
 def handle_audio_result(task_id: str, *, status: str):
-    logger.info(f"Задача {task_id} завершена со статусом {status}")
+    logger.info(f"Аудио-задача {task_id} завершена со статусом {status}")
+
+@dramatiq.actor(queue_name=settings.RABBITMQ_TEXT_RESPONSES)
+def handle_text_result(task_id: str, *, status: str):
+    logger.info(f"Текстовая задача {task_id} завершена со статусом {status}")

@@ -1,5 +1,9 @@
 import React from "react";
-import { generateAnswer, deleteTextMessages } from "../../../utils/api/text";
+import {
+  generateAnswer,
+  deleteTextMessages,
+  checkTaskStatus,
+} from "../../../utils/api/text";
 import { useChat } from "../../../utils/stateManager/chatContext";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
@@ -13,6 +17,16 @@ function ChatInputZone({ handleMessages }) {
   const [inputValue, setInputValue] = React.useState("");
   //состояние для определения статуса загрузки сообщения
   const [isUploading, setIsUploading] = React.useState(false);
+  //интервал опроса по task_id
+  const intervalRef = React.useRef();
+
+  React.useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   //очистка textarea
   const handleInputClear = () => {
@@ -29,13 +43,36 @@ function ChatInputZone({ handleMessages }) {
           type: "user",
           createdAt: new Date().toISOString(),
         });
-        const result = await generateAnswer(inputValue);
+        //сразу начинаем опрос по task_id
+        const { task_id } = await generateAnswer(inputValue);
         setInputValue("");
-        sendMessage({
-          text: result.message_response.message_text,
-          type: "response",
-          createdAt: new Date().toISOString(),
-        });
+        let attempts = 0;
+        const maxAttempts = 60;
+        intervalRef.current = setInterval(async () => {
+          attempts++;
+          try {
+            const statusResponse = await checkTaskStatus(task_id);
+            if (statusResponse.status === "completed") {
+              clearInterval(intervalRef.current);
+              sendMessage({
+                text: statusResponse.result.message_text,
+                type: "response",
+                createdAt: new Date().toISOString(),
+              });
+            } else if (attempts >= maxAttempts) {
+              clearInterval(intervalRef.current);
+              sendMessage({
+                text: "Таймаут генерации",
+                type: "response",
+                createdAt: new Date().toISOString(),
+              });
+            }
+          } catch (error) {
+            clearInterval(intervalRef.current);
+            console.error("Handle send message error: ", error);
+            throw error;
+          }
+        }, 1000);
       } catch (error) {
         console.error("Handle send message error: ", error);
         throw error;

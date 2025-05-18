@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     RABBITMQ_URL: str = Field(..., min_length=1)
     RABBITMQ_AUDIO_REQUESTS: str = Field(..., min_length=1)
     RABBITMQ_AUDIO_RESPONSES: str = Field(..., min_length=1)
+    RABBITMQ_TEXT_REQUESTS: str = Field(..., min_length=1)
+    RABBITMQ_TEXT_RESPONSES: str = Field(..., min_length=1)
 
     @classmethod
     def assemble_postgres_connection(cls, values: dict) -> str:

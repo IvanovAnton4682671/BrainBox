@@ -1,13 +1,17 @@
 from core.config import settings
 from core.logger import setup_logger
-import httpx
+from httpx import AsyncClient, Timeout, Limits, AsyncHTTPTransport
 
 logger = setup_logger("interfaces/auth.py")
 
 class AuthInterface:
     def __init__(self):
         self.base_url = f"{settings.AUTH_SERVICE_URL}/auth"
-        self.client = httpx.AsyncClient(timeout=30.0)
+        self.client = AsyncClient(
+            timeout=Timeout(10.0),
+            limits=Limits(max_connections=100),
+            transport=AsyncHTTPTransport(retries=3)
+        )
 
     async def register(self, user_data: dict):
         logger.info("Получен /register запрос для сервиса аутентификации!")

@@ -3,7 +3,7 @@ from fastapi import APIRouter, UploadFile, Request, Response
 import httpx
 from interfaces.audio import audio_interface
 from fastapi.exceptions import HTTPException
-from interfaces.tasks import create_audio_task, get_task_result
+from interfaces.audio_tasks import create_audio_task, get_audio_task_result
 
 logger = setup_logger("routers/audio.py")
 
@@ -47,7 +47,7 @@ async def recognize_saved_audio(request: Request, response: Response):
 
 @router.get("/tasks/{task_id}")
 async def check_task_status(task_id: str):
-    return await get_task_result(task_id)
+    return await get_audio_task_result(task_id)
 
 @router.get("/get-audio-messages")
 async def get_audio_messages(request: Request, response: Response):

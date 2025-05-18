@@ -19,6 +19,16 @@ export const generateAnswer = async (text) => {
   }
 };
 
+export const checkTaskStatus = async (task_id) => {
+  try {
+    const response = await axios.get(`${GATEWAY_URL}/tasks/${task_id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Check task status error: ", error);
+    throw error;
+  }
+};
+
 export const getTextMessages = async () => {
   try {
     const response = await axios.get(`${GATEWAY_URL}/get-text-messages`, {

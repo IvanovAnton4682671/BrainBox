@@ -5,12 +5,25 @@ from core.logger import setup_logger
 from routers import audio, auth, text
 from core.task_listener import start_listener_in_background
 import uvicorn
+from core.rabbitmq import rabbitmq
+from contextlib import asynccontextmanager
+import time
+import threading
 
 logger = setup_logger("http")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    rabbitmq.start()
+    start_listener_in_background()
+    yield
+    #останавливаем при завершении
+    rabbitmq.stop()
+
 app = FastAPI(
     title="BrainBox API Gateway",
-    description="API Gateway-узел проекта BrainBox"
+    description="API Gateway-узел проекта BrainBox",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -32,4 +45,3 @@ async def root():
 if __name__ == "__main__":
     logger.info("API Gateway запущен!")
     uvicorn.run("main:app", host=settings.GATEWAY_HOST, port=settings.GATEWAY_PORT, reload=True)
-    start_listener_in_background()

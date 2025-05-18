@@ -14,7 +14,7 @@
 
 .userMessage,
 .responseMessage {
-  max-width: 45%;
+  max-width: 90%;
   background-color: #e5e5e5;
   border-radius: 20px;
   padding: 10px;

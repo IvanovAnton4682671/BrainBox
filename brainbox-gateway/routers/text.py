@@ -3,6 +3,7 @@ from fastapi import APIRouter, Response, Request
 import httpx
 from fastapi.exceptions import HTTPException
 from interfaces.text import text_interface
+from interfaces.text_tasks import create_text_task, get_text_task_result
 
 logger = setup_logger("routers/text.py")
 
@@ -30,14 +31,18 @@ async def _process_text_response(text_response: httpx.Response, response: Respon
 @router.post("/generate-answer")
 async def generate_answer(request: Request, response: Response):
     try:
-        headers = { "X-Session-ID": request.cookies.get("sessionid") }
+        session_id = request.cookies.get("sessionid")
         request_data = await request.json()
         text = request_data.get("text")
-        text_response = await text_interface.generate_answer(headers, text)
-        return await _process_text_response(text_response, response)
+        task_id = await create_text_task(session_id, text)
+        return {"task_id": task_id}
     except Exception as e:
         logger.error(f"Ошибка генерации ответа: {str(e)}", exc_info=True)
         raise
+
+@router.get("/tasks/{task_id}")
+async def check_task_status(task_id: str):
+    return await get_text_task_result(task_id)
 
 @router.get("/get-text-messages")
 async def get_text_messages(request: Request, response: Response):
