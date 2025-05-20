@@ -10,6 +10,16 @@ const initialChats = {
   chatBot: [],
 };
 
+const getTableByService = (serviceId) => {
+  if (serviceId === "speechToText") {
+    return "audio_chat";
+  } else if (serviceId === "imageGeneration") {
+    return "image_chat";
+  } else {
+    return "text_chat";
+  }
+};
+
 //редьюсер для управления изменениями состояния
 const chatReducer = (state, action) => {
   switch (action.type) {
@@ -22,9 +32,20 @@ const chatReducer = (state, action) => {
         ...state,
         chats: {
           ...state.chats,
-          [state.activeService]: [
+          /*[state.activeService]: [
             ...state.chats[state.activeService], //существующие сообщения
             action.payload, //новое сообщение
+          ],*/
+          [action.payload.service || state.activeService]: [
+            ...state.chats[action.payload.service || state.activeService],
+            {
+              ...action.payload,
+              table:
+                action.payload.table ||
+                getTableByService(
+                  action.payload.service || state.activeService
+                ),
+            },
           ],
         },
       };

@@ -48,11 +48,12 @@ function ChatAudioZone() {
         type: "user",
         audio_uid: uploadResult.audio_uid,
         createdAt: new Date().toISOString(),
+        service: "speechToText",
       });
       //сразу запрос на распознавание отправленного файла
       const { task_id } = await recognizeSavedAudio(uploadResult.audio_uid);
       let attempts = 0;
-      const maxAttempts = 60;
+      const maxAttempts = 120;
       intervalRef.current = setInterval(async () => {
         attempts++;
         try {
@@ -63,6 +64,7 @@ function ChatAudioZone() {
               text: statusResponse.result.text,
               type: "response",
               createdAt: new Date().toISOString(),
+              service: "speechToText",
             });
           } else if (attempts >= maxAttempts) {
             clearInterval(intervalRef.current);
@@ -70,6 +72,7 @@ function ChatAudioZone() {
               text: "Таймаут распознавания",
               type: "response",
               createdAt: new Date().toISOString(),
+              service: "speechToText",
             });
           }
         } catch (error) {

@@ -42,12 +42,13 @@ function ChatInputZone({ handleMessages }) {
           text: inputValue,
           type: "user",
           createdAt: new Date().toISOString(),
+          service: "chatBot",
         });
         //сразу начинаем опрос по task_id
         setInputValue("");
         const { task_id } = await generateAnswer(inputValue);
         let attempts = 0;
-        const maxAttempts = 60;
+        const maxAttempts = 120;
         intervalRef.current = setInterval(async () => {
           attempts++;
           try {
@@ -59,6 +60,7 @@ function ChatInputZone({ handleMessages }) {
                 type: "response",
                 table: "text_chat",
                 createdAt: new Date().toISOString(),
+                service: "chatBot",
               });
             } else if (attempts >= maxAttempts) {
               clearInterval(intervalRef.current);
@@ -66,6 +68,7 @@ function ChatInputZone({ handleMessages }) {
                 text: "Таймаут генерации",
                 type: "response",
                 createdAt: new Date().toISOString(),
+                service: "chatBot",
               });
             }
           } catch (error) {
