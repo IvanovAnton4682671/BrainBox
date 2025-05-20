@@ -44,8 +44,8 @@ function ChatInputZone({ handleMessages }) {
           createdAt: new Date().toISOString(),
         });
         //сразу начинаем опрос по task_id
-        const { task_id } = await generateAnswer(inputValue);
         setInputValue("");
+        const { task_id } = await generateAnswer(inputValue);
         let attempts = 0;
         const maxAttempts = 60;
         intervalRef.current = setInterval(async () => {
@@ -57,6 +57,7 @@ function ChatInputZone({ handleMessages }) {
               sendMessage({
                 text: statusResponse.result.message_text,
                 type: "response",
+                table: "text_chat",
                 createdAt: new Date().toISOString(),
               });
             } else if (attempts >= maxAttempts) {
