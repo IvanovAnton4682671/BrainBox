@@ -5,6 +5,7 @@ import Chat from "../Chat/Chat";
 import { useChat } from "../../../utils/stateManager/chatContext";
 import { useAuth } from "../../../utils/hooks/useAuth";
 import { getAudioMessages } from "../../../utils/api/audio";
+import { getImageMessages } from "../../../utils/api/image";
 import { getTextMessages } from "../../../utils/api/text";
 import styles from "./Home.module.css";
 
@@ -23,6 +24,8 @@ function Home({ handleLogout }) {
         try {
           const audioMessages = await getAudioMessages();
           loadServerChats({ audioMessages: audioMessages.messages });
+          const imageMessages = await getImageMessages();
+          loadServerChats({ imageMessages: imageMessages.messages });
           const textMessages = await getTextMessages();
           loadServerChats({ textMessages: textMessages.messages });
         } catch (error) {

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.logger import setup_logger
-from routers import audio, auth, text
+from routers import audio, auth, text, image
 from core.task_listener import start_listener_in_background
 import uvicorn
 from core.rabbitmq import rabbitmq
@@ -37,6 +37,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(audio.router)
 app.include_router(text.router)
+app.include_router(image.router)
 
 @app.get("/")
 async def root():

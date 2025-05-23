@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     MINIO_SECRET_KEY: str = Field(..., min_length=1)
     MINIO_SECURE: bool = False
     MINIO_BUCKET_AUDIO: str = Field(..., min_length=1)
+    MINIO_BUCKET_IMAGE: str = Field(..., min_length=1)
 
     REDIS_HOST: str = Field(..., min_length=1)
     REDIS_PORT: int = Field(..., ge=1, le=65535)

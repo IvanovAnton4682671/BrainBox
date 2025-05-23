@@ -1,6 +1,7 @@
 import React from "react";
 import { FaFileAudio } from "react-icons/fa";
 import { downloadAudio } from "../../../utils/api/audio";
+import { downloadImage } from "../../../utils/api/image";
 import ReactMarkdown from "react-markdown";
 import styles from "./ChatMessageZone.module.css";
 
@@ -26,11 +27,20 @@ function ChatMessageZone({ messages }) {
     });
   };
 
-  const handleDownload = async (audio_uid, filename) => {
+  const handleDownloadAudio = async (audio_uid) => {
     try {
-      await downloadAudio(audio_uid, filename);
+      await downloadAudio(audio_uid);
     } catch (error) {
-      console.error("Handle download error: ", error);
+      console.error("Handle download audio error: ", error);
+      throw error;
+    }
+  };
+
+  const handleDownloadImage = async (image_uid) => {
+    try {
+      await downloadImage(image_uid);
+    } catch (error) {
+      console.error("Handle download image error: ", error);
       throw error;
     }
   };
@@ -53,9 +63,24 @@ function ChatMessageZone({ messages }) {
             ) : (
               message.text
             )}
+            {message.image_uid && (
+              <div className={styles.imageWrapper}>
+                <img
+                  src={`http://localhost:8000/image/view/${message.image_uid}`}
+                  alt={"Generated картинка"}
+                  className={styles.myImage}
+                />
+                <button
+                  onClick={() => handleDownloadImage(message.image_uid)}
+                  className={styles.downloadButton}
+                >
+                  Скачать
+                </button>
+              </div>
+            )}
             {message.audio_uid && (
               <button
-                onClick={() => handleDownload(message.audio_uid, message.text)}
+                onClick={() => handleDownloadAudio(message.audio_uid)}
                 className={styles.downloadButton}
               >
                 Скачать

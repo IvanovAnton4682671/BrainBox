@@ -37,6 +37,17 @@
   font-size: 25px;
 }
 
+.imageWrapper {
+  display: block;
+}
+
+.myImage {
+  border: none;
+  border-radius: 20px;
+  width: 100%;
+  height: 100%;
+}
+
 .downloadButton {
   display: block;
   margin-top: 7px;

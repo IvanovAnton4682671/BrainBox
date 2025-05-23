@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, UUID4
+from typing import Optional
 from datetime import datetime
 
 class ID(BaseModel):
@@ -20,10 +21,15 @@ class IsFromUser(BaseModel):
     )
 
 class MessageText(BaseModel):
-    message_text: str = Field(
-        ...,
-        min_length=1,
+    message_text: Optional[str] = Field(
+        None,
         description="Текст сообщения"
+    )
+
+class ImageUID(BaseModel):
+    image_uid: Optional[UUID4] = Field(
+        None,
+        description="Специальный ID картинки"
     )
 
 class CreatedAt(BaseModel):
@@ -32,11 +38,11 @@ class CreatedAt(BaseModel):
         description="Дата и время создания сообщения (UTC)"
     )
 
-class TextMessageInDB(ID, UserID, IsFromUser, MessageText, CreatedAt):
+class ImageMessageInDB(ID, UserID, IsFromUser, MessageText, ImageUID, CreatedAt):
     pass
 
-class TextMessageCreate(UserID, IsFromUser, MessageText):
+class ImageMessageRequest(UserID, MessageText):
     pass
 
-class TextMessageResponse(IsFromUser, MessageText, CreatedAt):
+class ImageMessageResponse(UserID, ImageUID):
     pass

@@ -70,6 +70,18 @@ const chatReducer = (state, action) => {
             createdAt: msg.created_at,
           }));
       }
+      if (action.payload.imageMessages) {
+        newState.chats.imageGeneration = (action.payload.imageMessages || [])
+          .filter((msg) => msg.table === "image_chat") //только картинки-сообщения
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          .map((msg) => ({
+            table: msg.table,
+            text: msg.message_text,
+            type: msg.is_from_user ? "user" : "response",
+            image_uid: msg.image_uid,
+            createdAt: msg.created_at,
+          }));
+      }
       if (action.payload.textMessages) {
         newState.chats.chatBot = (action.payload.textMessages || [])
           .filter((msg) => msg.table === "text_chat") //только текстовые сообщения

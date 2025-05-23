@@ -1,16 +1,12 @@
 import React from "react";
-import {
-  generateAnswer,
-  deleteTextMessages,
-  checkTaskStatus,
-} from "../../../utils/api/text";
 import { useChat } from "../../../utils/stateManager/chatContext";
+import { generateAnswer, deleteImageMessages } from "../../../utils/api/image";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
 import { MdArrowUpward } from "react-icons/md";
-import styles from "./ChatInputZone.module.css";
+import styles from "./ChatImageZone.module.css";
 
-function ChatInputZone({ handleMessages }) {
+function ChatImageZone() {
   //получаем поле и метод из состояния
   const { activeService, deleteChat, sendMessage } = useChat();
   //состояние для работы с textarea
@@ -33,50 +29,25 @@ function ChatInputZone({ handleMessages }) {
     setInputValue("");
   };
 
-  //косвенная работа с состоянием через родительский метод handleMessages
   const handleSendMessage = async () => {
     if (inputValue.trim()) {
       setIsUploading(true);
       try {
+        const text = inputValue;
         sendMessage({
-          text: inputValue,
+          text: text,
           type: "user",
           createdAt: new Date().toISOString(),
-          service: "chatBot",
+          service: "imageGeneration",
         });
-        //сразу начинаем опрос по task_id
         setInputValue("");
-        const { task_id } = await generateAnswer(inputValue);
-        let attempts = 0;
-        const maxAttempts = 120;
-        intervalRef.current = setInterval(async () => {
-          attempts++;
-          try {
-            const statusResponse = await checkTaskStatus(task_id);
-            if (statusResponse.status === "completed") {
-              clearInterval(intervalRef.current);
-              sendMessage({
-                text: statusResponse.result.message_text,
-                type: "response",
-                table: "text_chat",
-                createdAt: new Date().toISOString(),
-                service: "chatBot",
-              });
-            } else if (attempts >= maxAttempts) {
-              clearInterval(intervalRef.current);
-              sendMessage({
-                text: "Таймаут генерации",
-                type: "response",
-                createdAt: new Date().toISOString(),
-                service: "chatBot",
-              });
-            }
-          } catch (error) {
-            clearInterval(intervalRef.current);
-            console.error("Handle send message error: ", error);
-            throw error;
-          }
-        }, 1000);
+        const { image_uid } = await generateAnswer(text);
+        sendMessage({
+          image_uid: image_uid,
+          type: "response",
+          createdAt: new Date().toISOString(),
+          service: "imageGeneration",
+        });
       } catch (error) {
         console.error("Handle send message error: ", error);
         throw error;
@@ -86,14 +57,13 @@ function ChatInputZone({ handleMessages }) {
     }
   };
 
-  //удаление истории чата через состояние после подтверждения
   const handleDeleteChat = async () => {
     try {
       if (
         activeService &&
         window.confirm("Вы уверены, что хотите удалить текущий чат?")
       ) {
-        await deleteTextMessages();
+        await deleteImageMessages();
         deleteChat(activeService);
         alert("Чат успешно удалён!");
       }
@@ -131,4 +101,4 @@ function ChatInputZone({ handleMessages }) {
   );
 }
 
-export default ChatInputZone;
+export default ChatImageZone;

@@ -1,6 +1,7 @@
 import ChatMessageZone from "../ChatZones/ChatMessageZone";
 import ChatAudioZone from "../ChatZones/ChatAudioZone";
-import ChatInputZone from "../ChatZones/ChatInputZone";
+import ChatImageZone from "../ChatZones/ChatImageZone";
+import ChatTextZone from "../ChatZones/ChatTextZone";
 import { useChat } from "../../../utils/stateManager/chatContext";
 import styles from "./Chat.module.css";
 
@@ -22,11 +23,9 @@ function Chat() {
             : styles.chatInputZone
         }
       >
-        {activeService === "speechToText" ? (
-          <ChatAudioZone />
-        ) : (
-          <ChatInputZone />
-        )}
+        {activeService === "speechToText" && <ChatAudioZone />}
+        {activeService === "imageGeneration" && <ChatImageZone />}
+        {activeService === "chatBot" && <ChatTextZone />}
       </div>
     </div>
   );

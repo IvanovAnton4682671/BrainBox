@@ -66,7 +66,7 @@ export const getAudioMessages = async () => {
   }
 };
 
-export const downloadAudio = async (audio_uid, filename) => {
+export const downloadAudio = async (audio_uid) => {
   try {
     const response = await axios.get(
       `${GATEWAY_URL}/download-audio/${audio_uid}`,
@@ -79,7 +79,7 @@ export const downloadAudio = async (audio_uid, filename) => {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", filename || `audio_${audio_uid}.mp3`);
+    link.setAttribute("download", `audio_${audio_uid}.mp3`);
     document.body.appendChild(link);
     link.click();
     link.remove();
