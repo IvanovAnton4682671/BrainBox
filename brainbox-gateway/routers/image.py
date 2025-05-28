@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request, Response
 import httpx
 from fastapi.exceptions import HTTPException
 from interfaces.image import image_interface
+from interfaces.image_tasks import create_image_task, get_image_task_result
 
 logger = setup_logger("routers/image.py")
 
@@ -30,14 +31,18 @@ async def _process_image_response(image_response: httpx.Response, response: Resp
 @router.post("/generate-answer")
 async def generate_answer(request: Request, response: Response):
     try:
-        headers = {"X-Session-ID": request.cookies.get("sessionid")}
+        session_id = request.cookies.get("sessionid")
         request_data = await request.json()
         text = request_data.get("text")
-        image_response = await image_interface.generate_answer(headers, text)
-        return await _process_image_response(image_response, response)
+        task_id = await create_image_task(session_id, text)
+        return {"task_id": task_id}
     except Exception as e:
         logger.error(f"Ошибка генерации ответа: {str(e)}", exc_info=True)
         raise
+
+@router.get("/tasks/{task_id}")
+async def check_task_status(task_id: str):
+    return await get_image_task_result(task_id)
 
 @router.get("/view/{image_uid}")
 async def view_image(request: Request, response: Response, image_uid: str):

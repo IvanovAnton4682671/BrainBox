@@ -34,7 +34,7 @@ def _listen_for_results():
             connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
             channel = connection.channel()
             #объявляем и слушаем все очереди
-            for queue in [settings.RABBITMQ_AUDIO_RESPONSES, settings.RABBITMQ_TEXT_RESPONSES]:
+            for queue in [settings.RABBITMQ_AUDIO_RESPONSES, settings.RABBITMQ_TEXT_RESPONSES, settings.RABBITMQ_IMAGE_RESPONSES]:
                 try:
                     channel.queue_declare(
                         queue=queue,

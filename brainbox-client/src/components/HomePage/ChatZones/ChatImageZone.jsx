@@ -1,6 +1,10 @@
 import React from "react";
 import { useChat } from "../../../utils/stateManager/chatContext";
-import { generateAnswer, deleteImageMessages } from "../../../utils/api/image";
+import {
+  generateAnswer,
+  checkTaskStatus,
+  deleteImageMessages,
+} from "../../../utils/api/image";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
 import { MdArrowUpward } from "react-icons/md";
@@ -41,13 +45,37 @@ function ChatImageZone() {
           service: "imageGeneration",
         });
         setInputValue("");
-        const { image_uid } = await generateAnswer(text);
-        sendMessage({
-          image_uid: image_uid,
-          type: "response",
-          createdAt: new Date().toISOString(),
-          service: "imageGeneration",
-        });
+        const { task_id } = await generateAnswer(text);
+        let attempts = 0;
+        const maxAttempts = 120;
+        intervalRef.current = setInterval(async () => {
+          attempts++;
+          try {
+            const statusResponse = await checkTaskStatus(task_id);
+            if (statusResponse.status === "completed") {
+              clearInterval(intervalRef.current);
+              sendMessage({
+                image_uid: statusResponse.result.image_uid,
+                type: "response",
+                table: "image_chat",
+                createdAt: new Date().toISOString(),
+                service: "imageGeneration",
+              });
+            } else if (attempts >= maxAttempts) {
+              clearInterval(intervalRef.current);
+              sendMessage({
+                text: "Таймаут генерации",
+                type: "response",
+                createdAt: new Date().toISOString(),
+                service: "imageGeneration",
+              });
+            }
+          } catch (error) {
+            clearInterval(intervalRef.current);
+            console.error("Handle send message error: ", error);
+            throw error;
+          }
+        }, 1000);
       } catch (error) {
         console.error("Handle send message error: ", error);
         throw error;

@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     RABBITMQ_AUDIO_RESPONSES: str = Field(..., min_length=1)
     RABBITMQ_TEXT_REQUESTS: str = Field(..., min_length=1)
     RABBITMQ_TEXT_RESPONSES: str = Field(..., min_length=1)
+    RABBITMQ_IMAGE_REQUESTS: str = Field(..., min_length=1)
+    RABBITMQ_IMAGE_RESPONSES: str = Field(..., min_length=1)
 
     REDIS_HOST: str = Field(..., min_length=1)
     REDIS_PORT: int = Field(..., ge=1, le=65535)
