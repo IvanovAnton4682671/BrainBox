@@ -22,8 +22,8 @@ app.add_middleware(
 )
 
 app.include_router(audio.router)
-app.include_router(text.router)
 app.include_router(image.router)
+app.include_router(text.router)
 
 @app.get("/")
 async def root():
