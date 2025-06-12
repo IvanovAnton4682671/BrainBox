@@ -14,6 +14,7 @@ import json
 from dramatiq import Message
 from datetime import datetime
 from pydantic import BaseModel, Field
+from functools import wraps
 
 logger = setup_logger("worker.py")
 
@@ -25,6 +26,21 @@ class TempWrapper(BaseModel):
 
 broker = RabbitmqBroker(url=settings.RABBITMQ_URL)
 dramatiq.set_broker(broker)
+
+def async_to_sync(func):
+    """
+    Декоратор для запуска асинхронных функций в синхронном коде
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(func(*args, **kwargs))
+    return wrapper
 
 async def _process_task_result(task_id: str, result: dict, response_queue: str):
     """
@@ -58,12 +74,10 @@ def process_audio_task(task_id: str, *, session_id: str, audio_uid: str):
         task_id как позиционный аргумент
         session_id, audio_uid как именованные аргументы
     """
+
+    @async_to_sync
     async def async_task():
         try:
-            #создаём новый event loop если нужно
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
-                asyncio.set_event_loop(asyncio.new_event_loop())
             async with async_session_maker() as session:
                 user_id = await auth_interface.get_user_id(session_id)
                 audio_service = AudioService(session)
@@ -76,7 +90,8 @@ def process_audio_task(task_id: str, *, session_id: str, audio_uid: str):
         except Exception as e:
             logger.error(f"Ошибка при выполнении аудио-задачи: {str(e)}", exc_info=True)
             raise
-    asyncio.run(async_task())
+
+    async_task()
 
 @dramatiq.actor(queue_name=settings.RABBITMQ_TEXT_REQUESTS)
 def process_text_task(task_id: str, *, session_id: str, message_text: str):
@@ -85,11 +100,10 @@ def process_text_task(task_id: str, *, session_id: str, message_text: str):
         task_id как позиционный аргумент
         session_id, message_text как именованные аргументы
     """
+
+    @async_to_sync
     async def async_task():
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
-                asyncio.set_event_loop(asyncio.new_event_loop())
             async with async_session_maker() as session:
                 user_id = await auth_interface.get_user_id(session_id)
                 text_service = TextService(session)
@@ -102,7 +116,8 @@ def process_text_task(task_id: str, *, session_id: str, message_text: str):
         except Exception as e:
             logger.error(f"Ошибка при выполнении текстовой задачи: {str(e)}", exc_info=True)
             raise
-    asyncio.run(async_task())
+
+    async_task()
 
 @dramatiq.actor(queue_name=settings.RABBITMQ_IMAGE_REQUESTS)
 def process_image_task(task_id: str, *, session_id: str, message_text: str):
@@ -111,11 +126,10 @@ def process_image_task(task_id: str, *, session_id: str, message_text: str):
         task_id как позиционный аргумент
         session_id, message_text как именованные аргументы
     """
+
+    @async_to_sync
     async def async_task():
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
-                asyncio.set_event_loop(asyncio.new_event_loop())
             async with async_session_maker() as session:
                 user_id = await auth_interface.get_user_id(session_id)
                 image_service = ImageService(session)
@@ -132,7 +146,8 @@ def process_image_task(task_id: str, *, session_id: str, message_text: str):
         except Exception as e:
             logger.error(f"Ошибка выполнения задачи по генерации картинки: {str(e)}", exc_info=True)
             raise
-    asyncio.run(async_task())
+
+    async_task()
 
 @dramatiq.actor(queue_name=settings.RABBITMQ_AUDIO_RESPONSES)
 def handle_audio_result(task_id: str, *, status: str):
