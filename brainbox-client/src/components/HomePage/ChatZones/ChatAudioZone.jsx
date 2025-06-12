@@ -11,7 +11,13 @@ import styles from "./ChatAudioZone.module.css";
 
 function ChatAudioZone() {
   //получаем поле и метод из состояния
-  const { activeService, deleteChat, sendMessage } = useChat();
+  const {
+    activeService,
+    deleteChat,
+    sendMessage,
+    addTypingIndicator,
+    removeTypingIndicator,
+  } = useChat();
   //статус обработки отправленного аудио-файла
   const [isUploading, setIsUploading] = React.useState(false);
   //интервал опроса task_id
@@ -50,6 +56,7 @@ function ChatAudioZone() {
         createdAt: new Date().toISOString(),
         service: "speechToText",
       });
+      addTypingIndicator("speechToText");
       //сразу запрос на распознавание отправленного файла
       const { task_id } = await recognizeSavedAudio(uploadResult.audio_uid);
       let attempts = 0;
@@ -60,6 +67,7 @@ function ChatAudioZone() {
           const statusResponse = await checkTaskStatus(task_id);
           if (statusResponse.status === "completed") {
             clearInterval(intervalRef.current);
+            removeTypingIndicator("speechToText");
             sendMessage({
               text: statusResponse.result.text,
               type: "response",
@@ -68,6 +76,7 @@ function ChatAudioZone() {
             });
           } else if (attempts >= maxAttempts) {
             clearInterval(intervalRef.current);
+            removeTypingIndicator("speechToText");
             sendMessage({
               text: "Таймаут распознавания",
               type: "response",
@@ -77,11 +86,13 @@ function ChatAudioZone() {
           }
         } catch (error) {
           clearInterval(intervalRef.current);
+          removeTypingIndicator("speechToText");
           console.error("Handle audio upload error: ", error);
           throw error;
         }
       }, 1000);
     } catch (error) {
+      removeTypingIndicator("speechToText");
       console.error("Handle audio upload error: ", error);
       throw error;
     } finally {

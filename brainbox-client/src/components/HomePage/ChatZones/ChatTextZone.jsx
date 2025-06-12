@@ -12,7 +12,13 @@ import styles from "./ChatTextZone.module.css";
 
 function ChatTextZone() {
   //получаем поле и метод из состояния
-  const { activeService, deleteChat, sendMessage } = useChat();
+  const {
+    activeService,
+    deleteChat,
+    sendMessage,
+    addTypingIndicator,
+    removeTypingIndicator,
+  } = useChat();
   //состояние для работы с textarea
   const [inputValue, setInputValue] = React.useState("");
   //состояние для определения статуса загрузки сообщения
@@ -47,6 +53,7 @@ function ChatTextZone() {
         });
         //сразу начинаем опрос по task_id
         setInputValue("");
+        addTypingIndicator("chatBot");
         const { task_id } = await generateAnswer(text);
         let attempts = 0;
         const maxAttempts = 120;
@@ -56,6 +63,7 @@ function ChatTextZone() {
             const statusResponse = await checkTaskStatus(task_id);
             if (statusResponse.status === "completed") {
               clearInterval(intervalRef.current);
+              removeTypingIndicator("chatBot");
               sendMessage({
                 text: statusResponse.result.message_text,
                 type: "response",
@@ -65,6 +73,7 @@ function ChatTextZone() {
               });
             } else if (attempts >= maxAttempts) {
               clearInterval(intervalRef.current);
+              removeTypingIndicator("chatBot");
               sendMessage({
                 text: "Таймаут генерации",
                 type: "response",
@@ -74,11 +83,13 @@ function ChatTextZone() {
             }
           } catch (error) {
             clearInterval(intervalRef.current);
+            removeTypingIndicator("chatBot");
             console.error("Handle send message error: ", error);
             throw error;
           }
         }, 1000);
       } catch (error) {
+        removeTypingIndicator("chatBot");
         console.error("Handle send message error: ", error);
         throw error;
       } finally {

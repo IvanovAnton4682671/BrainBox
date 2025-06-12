@@ -49,6 +49,31 @@ const chatReducer = (state, action) => {
           ],
         },
       };
+    case "ADD_TYPING_INDICATOR":
+      return {
+        ...state,
+        chats: {
+          ...state.chats,
+          [action.payload.service]: [
+            ...state.chats[action.payload.service],
+            {
+              id: "typing-indicator",
+              type: "typing",
+              service: action.payload.service,
+            },
+          ],
+        },
+      };
+    case "REMOVE_TYPING_INDICATOR":
+      return {
+        ...state,
+        chats: {
+          ...state.chats,
+          [action.payload.service]: state.chats[action.payload.service].filter(
+            (msg) => msg.id !== "typing-indicator"
+          ),
+        },
+      };
     case "DELETE_CHAT":
       //очистка чата: заменяем массив сообщений сервиса пустым
       return { ...state, chats: { ...state.chats, [action.payload]: [] } };
@@ -155,6 +180,16 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: "SELECT_SERVICE", payload: serviceId }),
     sendMessage: (message) =>
       dispatch({ type: "SEND_MESSAGE", payload: message }),
+    addTypingIndicator: (serviceId) =>
+      dispatch({
+        type: "ADD_TYPING_INDICATOR",
+        payload: { service: serviceId },
+      }),
+    removeTypingIndicator: (serviceId) =>
+      dispatch({
+        type: "REMOVE_TYPING_INDICATOR",
+        payload: { service: serviceId },
+      }),
     deleteChat: (serviceId) =>
       dispatch({ type: "DELETE_CHAT", payload: serviceId }),
     loadServerChats: (serverData) =>

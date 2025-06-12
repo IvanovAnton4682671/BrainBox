@@ -12,7 +12,13 @@ import styles from "./ChatImageZone.module.css";
 
 function ChatImageZone() {
   //получаем поле и метод из состояния
-  const { activeService, deleteChat, sendMessage } = useChat();
+  const {
+    activeService,
+    deleteChat,
+    sendMessage,
+    addTypingIndicator,
+    removeTypingIndicator,
+  } = useChat();
   //состояние для работы с textarea
   const [inputValue, setInputValue] = React.useState("");
   //состояние для определения статуса загрузки сообщения
@@ -45,6 +51,7 @@ function ChatImageZone() {
           service: "imageGeneration",
         });
         setInputValue("");
+        addTypingIndicator("imageGeneration");
         const { task_id } = await generateAnswer(text);
         let attempts = 0;
         const maxAttempts = 120;
@@ -54,6 +61,7 @@ function ChatImageZone() {
             const statusResponse = await checkTaskStatus(task_id);
             if (statusResponse.status === "completed") {
               clearInterval(intervalRef.current);
+              removeTypingIndicator("imageGeneration");
               sendMessage({
                 image_uid: statusResponse.result.image_uid,
                 type: "response",
@@ -63,6 +71,7 @@ function ChatImageZone() {
               });
             } else if (attempts >= maxAttempts) {
               clearInterval(intervalRef.current);
+              removeTypingIndicator("imageGeneration");
               sendMessage({
                 text: "Таймаут генерации",
                 type: "response",
@@ -72,11 +81,13 @@ function ChatImageZone() {
             }
           } catch (error) {
             clearInterval(intervalRef.current);
+            removeTypingIndicator("imageGeneration");
             console.error("Handle send message error: ", error);
             throw error;
           }
         }, 1000);
       } catch (error) {
+        removeTypingIndicator("imageGeneration");
         console.error("Handle send message error: ", error);
         throw error;
       } finally {

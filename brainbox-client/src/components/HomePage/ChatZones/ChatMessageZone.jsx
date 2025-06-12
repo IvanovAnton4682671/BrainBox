@@ -50,13 +50,22 @@ function ChatMessageZone({ messages }) {
       <div className={styles.messageBox} ref={messageBoxRef}>
         {messages.map((message, index) => (
           <div
-            key={index}
+            key={message.id || index}
             className={
               message.type === "user"
                 ? styles.userMessage
+                : message.type === "typing"
+                ? styles.typingMessage
                 : styles.responseMessage
             }
           >
+            {message.type === "typing" && (
+              <img
+                className={styles.typingIndicator}
+                src="./ellipsis.gif"
+                alt="Typing..."
+              ></img>
+            )}
             {message.isAudio && <FaFileAudio className={styles.audioImg} />}
             {message.table === "text_chat" && message.type === "response" ? (
               <ReactMarkdown>{message.text}</ReactMarkdown>
@@ -86,9 +95,11 @@ function ChatMessageZone({ messages }) {
                 Скачать
               </button>
             )}
-            <span className={styles.messageDate}>
-              {message.createdAt && formatDate(message.createdAt)}
-            </span>
+            {message.type !== "typing" && (
+              <span className={styles.messageDate}>
+                {message.createdAt && formatDate(message.createdAt)}
+              </span>
+            )}
           </div>
         ))}
       </div>
