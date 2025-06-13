@@ -24,13 +24,14 @@ function ChatTextZone() {
   //состояние для определения статуса загрузки сообщения
   const [isUploading, setIsUploading] = React.useState(false);
   //интервал опроса по task_id
-  const intervalRef = React.useRef();
+  const intervalsRef = React.useRef({});
 
   React.useEffect(() => {
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      Object.values(intervalsRef.current).forEach((interval) => {
+        clearInterval(interval);
+      });
+      intervalsRef.current = {};
     };
   }, []);
 
@@ -57,12 +58,13 @@ function ChatTextZone() {
         const { task_id } = await generateAnswer(text);
         let attempts = 0;
         const maxAttempts = 120;
-        intervalRef.current = setInterval(async () => {
+        intervalsRef.current[task_id] = setInterval(async () => {
           attempts++;
           try {
             const statusResponse = await checkTaskStatus(task_id);
             if (statusResponse.status === "completed") {
-              clearInterval(intervalRef.current);
+              clearInterval(intervalsRef.current[task_id]);
+              delete intervalsRef.current[task_id];
               removeTypingIndicator("chatBot");
               sendMessage({
                 text: statusResponse.result.message_text,
@@ -72,7 +74,8 @@ function ChatTextZone() {
                 service: "chatBot",
               });
             } else if (attempts >= maxAttempts) {
-              clearInterval(intervalRef.current);
+              clearInterval(intervalsRef.current[task_id]);
+              delete intervalsRef.current[task_id];
               removeTypingIndicator("chatBot");
               sendMessage({
                 text: "Таймаут генерации",
@@ -82,7 +85,8 @@ function ChatTextZone() {
               });
             }
           } catch (error) {
-            clearInterval(intervalRef.current);
+            clearInterval(intervalsRef.current[task_id]);
+            delete intervalsRef.current[task_id];
             removeTypingIndicator("chatBot");
             console.error("Handle send message error: ", error);
             throw error;

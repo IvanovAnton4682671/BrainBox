@@ -24,13 +24,14 @@ function ChatImageZone() {
   //состояние для определения статуса загрузки сообщения
   const [isUploading, setIsUploading] = React.useState(false);
   //интервал опроса по task_id
-  const intervalRef = React.useRef();
+  const intervalsRef = React.useRef({});
 
   React.useEffect(() => {
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      Object.values(intervalsRef.current).forEach((interval) => {
+        clearInterval(interval);
+      });
+      intervalsRef.current = {};
     };
   }, []);
 
@@ -55,12 +56,13 @@ function ChatImageZone() {
         const { task_id } = await generateAnswer(text);
         let attempts = 0;
         const maxAttempts = 120;
-        intervalRef.current = setInterval(async () => {
+        intervalsRef.current[task_id] = setInterval(async () => {
           attempts++;
           try {
             const statusResponse = await checkTaskStatus(task_id);
             if (statusResponse.status === "completed") {
-              clearInterval(intervalRef.current);
+              clearInterval(intervalsRef.current[task_id]);
+              delete intervalsRef.current[task_id];
               removeTypingIndicator("imageGeneration");
               sendMessage({
                 image_uid: statusResponse.result.image_uid,
@@ -70,7 +72,8 @@ function ChatImageZone() {
                 service: "imageGeneration",
               });
             } else if (attempts >= maxAttempts) {
-              clearInterval(intervalRef.current);
+              clearInterval(intervalsRef.current[task_id]);
+              delete intervalsRef.current[task_id];
               removeTypingIndicator("imageGeneration");
               sendMessage({
                 text: "Таймаут генерации",
@@ -80,7 +83,8 @@ function ChatImageZone() {
               });
             }
           } catch (error) {
-            clearInterval(intervalRef.current);
+            clearInterval(intervalsRef.current[task_id]);
+            delete intervalsRef.current[task_id];
             removeTypingIndicator("imageGeneration");
             console.error("Handle send message error: ", error);
             throw error;

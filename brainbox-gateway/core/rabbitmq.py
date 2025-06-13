@@ -24,6 +24,8 @@ class RabbitMQ:
         queues = [
             settings.RABBITMQ_AUDIO_REQUESTS,
             settings.RABBITMQ_AUDIO_RESPONSES,
+            settings.RABBITMQ_IMAGE_REQUESTS,
+            settings.RABBITMQ_IMAGE_RESPONSES,
             settings.RABBITMQ_TEXT_REQUESTS,
             settings.RABBITMQ_TEXT_RESPONSES
         ]
