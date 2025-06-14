@@ -24,7 +24,7 @@ async def create_image_task(session_id: str, message_text: str):
         },
         "options": {"retry_limit": 3}
     }
-    rabbitmq.publish(
+    await rabbitmq.publish(
         queue_name=settings.RABBITMQ_IMAGE_REQUESTS,
         message=task_data
     )

@@ -1,26 +1,25 @@
 from core.logger import setup_logger
-from typing import Optional
-import pika
-from pika.adapters.blocking_connection import BlockingChannel
-import threading
+import aio_pika
+import asyncio
 from core.config import settings
-import time
 import json
 
 logger = setup_logger("core/rabbitmq.py")
 
 class RabbitMQ:
     def __init__(self):
-        self._connection: Optional[pika.BlockingConnection] = None
-        self._channel: Optional[BlockingChannel] = None
-        self._connection_lock = threading.Lock()
-        self._heartbeat_thread: Optional[threading.Thread] = None
-        self._running = False
+        self.connection: aio_pika.RobustConnection = None
+        self.channel: aio_pika.RobustChannel = None
+        self._connection_lock = asyncio.Lock()
+        self._queues_declared = False
 
-    def _declare_queues(self) -> None:
+    async def _declare_queues(self) -> None:
         """
-        Объявляет все необходимые очереди при подключении
+        Асинхронное объявление очередей (идемпотентная операция)
         """
+
+        if self._queues_declared:
+            return
         queues = [
             settings.RABBITMQ_AUDIO_REQUESTS,
             settings.RABBITMQ_AUDIO_RESPONSES,
@@ -32,139 +31,107 @@ class RabbitMQ:
         logger.info("Создаём очереди...")
         for queue in queues:
             try:
-                self._channel.queue_declare(
-                    queue=f"{queue}.XQ",
+                #главная очередь с DLQ политикой
+                await self.channel.declare_queue(
+                    name=queue,
+                    durable=True,
+                    arguments={
+                        "x-dead-letter-exchange": "",
+                        "x-dead-letter-routing-key": f"{queue}.XQ"
+                    }
+                )
+                #очередь для повторной обработки (DQ)
+                await self.channel.declare_queue(
+                    name=f"{queue}.DQ",
+                    durable=True,
+                    arguments={
+                        "x-dead-letter-exchange": "",
+                        "x-dead-letter-routing-key": f"{queue}.XQ"
+                    }
+                )
+                #архивная очередь (XQ)
+                await self.channel.declare_queue(
+                    name=f"{queue}.XQ",
                     durable=True,
                     arguments={"x-message-ttl": int(604800000)}
-                )
-                self._channel.queue_declare(
-                    queue=queue,
-                    durable=True,
-                    arguments={
-                        "x-dead-letter-exchange": "",
-                        "x-dead-letter-routing-key": f"{queue}.XQ"
-                    }
-                )
-                self._channel.queue_declare(
-                    queue=f"{queue}.DQ",
-                    durable=True,
-                    arguments={
-                        "x-dead-letter-exchange": "",
-                        "x-dead-letter-routing-key": f"{queue}.XQ"
-                    }
                 )
             except Exception as e:
                 logger.error(f"Ошибка при создании очередей: {str(e)}", exc_info=True)
                 raise
         logger.info("Очереди успешно созданы!")
+        self._declare_queues = True
 
-    def _connect(self) -> None:
+    async def _on_reconnect(self, connection: aio_pika.RobustConnection) -> None:
         """
-        Установка соединения с RabbitMQ
+        Обработчик автоматического восстановления соединения
         """
-        with self._connection_lock:
-            if self._connection and self._connection.is_open:
+
+        logger.warning("Соединение с RabbitMQ восстановлено после разрыва...")
+        self.channel = await connection.channel()
+        self._queues_declared = False
+
+    async def connect(self) -> None:
+        """
+        Установка соединения с автоматическим восстановлением
+        """
+
+        async with self._connection_lock:
+            if self.connection and not self.connection.is_closed:
                 return
+            logger.info("Устанавливаем соединение с RabbitMQ...")
             try:
-                logger.info("Устанавливаем соединение с RabbitMQ...")
-                self._connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
-                self._channel = self._connection.channel()
-                self._declare_queues()
+                self.connection = await aio_pika.connect_robust(
+                    url=settings.RABBITMQ_URL,
+                    client_properties={"connection_name": "gateway-main"},
+                    #on_reconnect=self._on_reconnect
+                )
+                self.channel = await self.connection.channel()
+                await self._declare_queues()
                 logger.info("Соединение установлено!")
             except Exception as e:
                 logger.error(f"Ошибка при подключении к RabbitMQ: {str(e)}", exc_info=True)
-                self._connection = None
-                self._channel = None
-                raise
+                self.connection = None
+                self.channel = None
 
-    def _close_connection(self) -> None:
+    async def close(self) -> None:
         """
-        Отключение от RabbitMQ
+        Закрытие соединения
         """
-        with self._connection_lock:
-            if self._connection and self._connection.is_open:
+
+        async with self._connection_lock:
+            if self.connection:
                 try:
-                    self._connection.close()
+                    await self.connection.close()
+                    logger.info("Соединение закрыто!")
                 except Exception as e:
-                    logger.error(f"Ошибка при отключении от RabbitMQ: {str(e)}", exc_info=True)
+                    logger.error(f"Ошибка при закрытии соединения: ", str(e), exc_info=True)
                 finally:
-                    self._connection = None
-                    self._channel = None
+                    self.connection = None
+                    self.channel = None
+                    self._queues_declared = False
 
-    def _start_heartbeat(self) -> None:
+    async def ensure_connection(self) -> None:
         """
-        Запускает поток для проверки соединения
+        Обеспечивает активное соединение
         """
-        def heartbeat():
-            while self._running:
-                try:
-                    logger.info("Попытка Heartbeat проверки...")
-                    with self._connection_lock:
-                        if not self._connection or self._connection.is_closed:
-                            self._connect()
-                        elif self._channel and self._channel.is_closed:
-                            self._channel = self._connection.channel()
-                except Exception as e:
-                    logger.warning(f"Heartbeat проверка не удалась: {str(e)}", exc_info=True)
-                time.sleep(30)
-        self._heartbeat_thread = threading.Thread(
-            target=heartbeat,
-            name="RabbitMQHeartbeat",
-            daemon=True
+
+        if not self.connection or self.connection.is_closed:
+            await self.connect()
+
+    async def publish(self, queue_name: str, message: dict) -> None:
+        """
+        Асинхронная публикация сообщения с автоматическим восстановлением
+        """
+
+        await self.ensure_connection()
+        await self.channel.default_exchange.publish(
+            message=aio_pika.Message(
+                body=json.dumps(message).encode(),
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
+                content_type="application/json"
+            ),
+            routing_key=queue_name
         )
-        self._heartbeat_thread.start()
-
-    def start(self) -> None:
-        """
-        Запускает фоновое соединение и Heartbeat
-        """
-        self._running = True
-        self._connect()
-        self._start_heartbeat()
-
-    def stop(self) -> None:
-        """
-        Останавливает соединение и Heartbeat
-        """
-        self._running = False
-        if self._heartbeat_thread:
-            self._heartbeat_thread.join()
-        self._close_connection()
-
-    def publish(self, queue_name: str, message: dict) -> None:
-        """
-        Публикует сообщение в очередь
-        """
-        attempts = 0
-        max_attempts = 3
-        while attempts < max_attempts:
-            try:
-                with self._connection_lock:
-                    if not self._connection or self._connection.is_closed:
-                        self._connect()
-                    if not self._channel or self._channel.is_closed:
-                        self._channel = self._connection.channel()
-                    self._channel.basic_publish(
-                        exchange="",
-                        routing_key=queue_name,
-                        body=json.dumps(message),
-                        properties=pika.BasicProperties(
-                            delivery_mode=2,
-                            content_type="application/json"
-                        )
-                    )
-                    logger.info(f"Сообщение {message} отправлено в очередь {queue_name}!")
-                    return
-            except Exception as e:
-                time.sleep(1)
-                self.stop()
-                self.start()
-                #attempts += 1
-                #logger.error(f"Ошибка при публикации сообщения: {str(e)}", exc_info=True)
-                #if attempts < max_attempts:
-                    #time.sleep(1)
-                    #self._close_connection()
-                #else:
-                    #raise RuntimeError(f"Не удалось отправить сообщение после {max_attempts} попыток!")
+        logger.info(f"Сообщение {message} отправлено в очередь {queue_name}...")
 
 rabbitmq = RabbitMQ()

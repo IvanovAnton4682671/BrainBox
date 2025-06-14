@@ -24,7 +24,7 @@ async def create_text_task(session_id: str, message_text: str) -> str:
         },
         "options": {"retry_limit": 3}
     }
-    rabbitmq.publish(
+    await rabbitmq.publish(
         queue_name=settings.RABBITMQ_TEXT_REQUESTS,
         message=task_data
     )

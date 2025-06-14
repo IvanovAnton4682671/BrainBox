@@ -12,11 +12,10 @@ logger = setup_logger("http")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    rabbitmq.start()
+    await rabbitmq.connect()
     start_listener_in_background()
     yield
-    #останавливаем при завершении
-    rabbitmq.stop()
+    await rabbitmq.close()
 
 app = FastAPI(
     title="BrainBox API Gateway",

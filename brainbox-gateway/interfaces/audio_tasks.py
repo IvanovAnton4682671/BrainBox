@@ -26,7 +26,7 @@ async def create_audio_task(session_id: str, audio_uid: str) -> str:
         "options": {"retry_limit": 3}
     }
     #отправляем в RabbitMQ
-    rabbitmq.publish(
+    await rabbitmq.publish(
         queue_name=settings.RABBITMQ_AUDIO_REQUESTS,
         message=task_data
     )
