@@ -7,8 +7,6 @@ from core.task_listener import start_listener_in_background
 import uvicorn
 from core.rabbitmq import rabbitmq
 from contextlib import asynccontextmanager
-import time
-import threading
 
 logger = setup_logger("http")
 

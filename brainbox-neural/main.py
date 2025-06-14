@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import audio, text, image
 import uvicorn
 from core.config import settings
-import subprocess
+import multiprocessing
+import sys
 
 logger = setup_logger("http")
 
@@ -29,6 +30,45 @@ app.include_router(text.router)
 async def root():
     return {"message": "BrainBox Neural Service is running..."}
 
+def run_worker():
+    """
+    Запускает воркер в отдельном потоке
+    """
+
+    from dramatiq.cli import main as dramatiq_main
+    processes = multiprocessing.cpu_count()
+    sys.argv = [
+        "dramatiq",
+        "worker",
+        "--processes", f"{processes}",
+        "--threads", "1"
+    ]
+    dramatiq_main()
+
+def run_server():
+    """
+    Запускает сервер
+    """
+
+    uvicorn.run(
+        "main:app",
+        host=settings.NEURAL_HOST,
+        port=settings.NEURAL_PORT,
+        reload=True
+    )
+
 if __name__ == "__main__":
-    subprocess.Popen(["dramatiq", "worker"])
-    uvicorn.run("main:app", host=settings.NEURAL_HOST, port=settings.NEURAL_PORT, reload=True)
+    worker_process = multiprocessing.Process(target=run_worker)
+    worker_process.start()
+    try:
+        run_server()
+    except KeyboardInterrupt:
+        logger.info("Получен сигнал прерывания, процессы завершаются...")
+    finally:
+        logger.info("Останавливаем воркер...")
+        worker_process.terminate()
+        worker_process.join(timeout=5)
+        if worker_process.is_alive():
+            logger.warning("Воркер не завершился корректно, принудительное завершение...")
+            worker_process.kill()
+        logger.info("Все процессы остановлены.")
