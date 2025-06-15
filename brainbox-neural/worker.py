@@ -29,24 +29,19 @@ dramatiq.set_broker(broker)
 
 async def _process_task_result(task_id: str, result: dict, response_queue: str):
     """
-    Общая функция для сохранения результатов и отправки ответов
+    Общая функция для отправки ответов
     """
-    def json_serializer(obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        raise TypeError(f"Тип {type(obj)} некорректный!")
 
     queue_type = str(response_queue.split("_")[0])
-    await redis.setex(
-        name=f"{queue_type}_task_result:{task_id}",
-        time=3600,
-        value=json.dumps(result.model_dump(), default=json_serializer)
-    )
+    message_data = {
+        "task_id": task_id,
+        "result": result
+    }
     message = Message(
         queue_name=response_queue,
         actor_name=f"handle_{queue_type}_result",
-        args=[task_id],
-        kwargs={"status": "completed"},
+        args=[],
+        kwargs=message_data,
         options={}
     )
     broker.enqueue(message)

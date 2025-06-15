@@ -1,81 +1,141 @@
-import pika.exceptions
 from core.logger import setup_logger
+import aio_pika
 import json
 from databases.redis import redis
-import pika
 from core.config import settings
-import threading
-import time
+from contextlib import suppress
+import asyncio
 
 logger = setup_logger("core/task_listener.py")
 
-async def _handle_message(body: bytes, queue_type: str):
-    try:
-        data = json.loads(body)
-        task_id = data["task_id"]
-        result = data["result"]
-        redis_key = f"{queue_type}_task_result:{task_id}"
-        await redis.setex(
-            name=redis_key,
-            time=3600,
-            value=json.dumps(result)
-        )
-        logger.info(f"Результат задачи {task_id} сохранён в {redis_key}")
-    except Exception as e:
-        logger.error(f"Ошибка при получении сообщения: {str(e)}", exc_info=True)
-        raise
+class TaskListener:
+    def __init__(self):
+        self.connection: aio_pika.RobustConnection = None
+        self.channel: aio_pika.RobustChannel = None
+        self._running = False
+        self._consuming_tasks = []
+        self._reconnect_delay = 3
 
-def _listen_for_results():
-    def callback(ch, method, properties, body, queue_type):
-        _handle_message(body, queue_type.split("_")[0])
-    while True:
-        connection = None
-        try:
-            connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
-            channel = connection.channel()
-            #объявляем и слушаем все очереди
-            for queue in [settings.RABBITMQ_AUDIO_RESPONSES, settings.RABBITMQ_TEXT_RESPONSES, settings.RABBITMQ_IMAGE_RESPONSES]:
-                try:
-                    channel.queue_declare(
-                        queue=queue,
-                        passive=True
-                    )
-                except pika.exceptions.ChannelClosedByBroker as e:
-                    channel.queue_declare(
-                        queue=queue,
-                        durable=True
-                    )
-                channel.basic_consume(
-                        queue=queue,
-                        on_message_callback=lambda ch, method, properties, body, q=queue: callback(ch, method, properties, body, q),
-                        auto_ack=True
-                    )
-            logger.info("Слушатель RabbitMQ запущен!")
+    async def _handle_message(self, message: aio_pika.IncomingMessage, queue_type: str) -> None:
+        """
+        Асинхронная обработка входящих сообщений
+        """
+
+        async with message.process():
             try:
-                channel.start_consuming()
-            except pika.exceptions.ConnectionClosedByBroker as e:
-                logger.error(f"Соединение разорвано брокером: {str(e)}", exc_info=True)
-                raise
+                data = json.loads(message.body.decode())
+                task_id = data["task_id"]
+                result = data["result"]
+                redis_key = f"{queue_type}_task_result:{task_id}"
+                await redis.setex(
+                    name=redis_key,
+                    time=3600,
+                    value=json.dumps(result)
+                )
+                logger.info(f"Результат задачи {task_id} сохранён в {redis_key}")
             except Exception as e:
-                logger.error(f"Ошибка потребления: {str(e)}", exc_info=True)
+                logger.error(f"Ошибка при обработке сообщения: {str(e)}", exc_info=True)
+                await message.nack(requeue=True)
                 raise
-        except Exception as e:
-            logger.error(f"Ошибка в слушателе: {str(e)}. Переподключаемся...", exc_info=True)
-            if connection and connection.is_open:
-                try:
-                    connection.close()
-                except:
-                    pass
-            #пауза перед повторной попыткой
-            time.sleep(5)
+            else:
+                await message.ack()
 
-def start_listener_in_background():
-    """
-    Запускает слушатель в фоновом потоке
-    """
-    thread = threading.Thread(
-        target=_listen_for_results,
-        name="RabbitMQListener",
-        daemon=True
-    )
-    thread.start()
+    async def _listen_to_queue(self, queue_name: str) -> None:
+        """
+        Асинхронное прослушивание одной очереди
+        """
+
+        queue_type = queue_name.split("_")[0]
+        logger.info(f"Начинается прослушивание очереди {queue_name}...")
+        try:
+            queue = await self.channel.declare_queue(
+                queue_name,
+                durable=True,
+                passive=True
+            )
+            async for message in queue:
+                await self._handle_message(message, queue_type)
+        except aio_pika.exceptions.ChannelClosed:
+            logger.warning(f"Канал для очереди {queue_name} закрыт, переподключаемся...")
+            raise
+        except Exception as e:
+            logger.error(f"Ошибка при прослушивании очереди {queue_name}: {str(e)}", exc_info=True)
+            raise
+
+    async def _connect(self) -> None:
+        """
+        Установка соединения с RabbitMQ
+        """
+
+        logger.info("Устанавливаем соединение с RabbitMQ...")
+        self.connection = await aio_pika.connect_robust(
+            url=settings.RABBITMQ_URL,
+            client_properties={"connection_name": "gateway-listener"},
+            timeout=10
+        )
+        self.channel = await self.connection.channel()
+        await self.channel.set_qos(prefetch_count=10)
+        logger.info("Соединение установлено!")
+
+    async def _close(self) -> None:
+        """
+        Закрытие соединения слушателя
+        """
+
+        if self.connection:
+            with suppress(Exception):
+                await self.connection.close()
+                logger.info("Соединение закрыто!")
+
+    async def _start_consume(self) -> None:
+        """
+        Запуск прослушивания всех очередей
+        """
+
+        queues = [
+            settings.RABBITMQ_AUDIO_RESPONSES,
+            settings.RABBITMQ_IMAGE_RESPONSES,
+            settings.RABBITMQ_TEXT_RESPONSES
+        ]
+        self._consuming_tasks = [asyncio.create_task(self._listen_to_queue(queue)) for queue in queues]
+        logger.info("Слушатель запущен!")
+
+    async def start(self) -> None:
+        """
+        Основной цикл работы слушателя
+        """
+
+        self._running = True
+        while self._running:
+            try:
+                await self._connect()
+                await self._start_consume()
+                await asyncio.gather(*self._consuming_tasks)
+            except (aio_pika.exceptions.AMQPConnectionError, ConnectionResetError) as e:
+                logger.warning(f"Ошибка соединения: {str(e)}. Переподключаемся через {self._reconnect_delay} сек...")
+                await self._close()
+                await asyncio.sleep(self._reconnect_delay)
+            except asyncio.CancelledError:
+                logger.info("Работа слушателя прервана!")
+                break
+            except Exception as e:
+                logger.error(f"Неизвестная ошибка в слушателе: {str(e)}", exc_info=True)
+                await self._close()
+                await asyncio.sleep(self._reconnect_delay)
+            finally:
+                for task in self._consuming_tasks:
+                    if not task.done():
+                        task.cancel()
+                        with suppress(asyncio.CancelledError):
+                            await task
+                self._consuming_tasks = []
+
+    async def stop(self) -> None:
+        """
+        Остановка слушателя
+        """
+
+        self._running = False
+        await self._close()
+
+task_listener = TaskListener()

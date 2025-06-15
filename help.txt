@@ -1,3 +1,28 @@
+PostgreSQL Server + Command Line Tools (база - postgres postgres 5432)
+Установить Path C:\Program Files\PostgreSQL\14\bin для работы psql
+0. Запуск сервера (win+r -> services.msc -> postgresql-x64-14 -> выполняется)
+1. Зайти под пользователя (cmd -> psql -U postgres -h localhost -p 5432 -d dbname -> пароль)
+2.1 Создание пользователя (CREATE USER user1 WITH PASSWORD '12345';)
+2.2 Удаление пользователя (DROP USER user1;)
+2.3 Список всех пользователей (\du)
+3.1 Создать БД (CREATE DATABASE testdb;)
+3.2 Удалить БД (DROP DATABASE testdb;)
+3.3 Переключиться на БД (\c testdb)
+3.4 Список всех БД (\l)
+4.1 Дать все права на БД (GRANT ALL PRIVILEGES ON DATABASE testdb TO user1;)
+4.2 Забрать все права (REVOKE ALL PRIVILEGES ON DATABASE testdb FROM user1;)
+4.3 Дать права только на чтение (GRANT CONNECT ON DATABASE testdb TO user1; GRANT SELECT ON ALL TABLES IN SCHEMA public TO user1;)
+5.1 Создать таблицу (CREATE TABLE users (id SERIAL PRIMARY KEY);)
+5.2 Удалить таблицу (DROP TABLE users;)
+5.3 Добавить столбец (ALTER TABLE users ADD COLUMN email VARCHAR(100);)
+5.4 Удалить столбец (ALTER TABLE users DROP COLUMN email;)
+6.1 Вставка (INSERT INTO users (name) VALUES ('Васёк');)
+6.2 Обновление (UPDATE users SET email = 'vasya@sobaka.ru' WHERE name = 'Васёк';)
+6.3 Удаление (DELETE FROM users WHERE name = 'Васёк';)
+7.1 Вывод таблиц (\dt)
+7.2 Вывод таблицы (SELECT * FROM users;)
+7.3 Фильтрация (SELECT * FROM users WHERE name = 'Васёк';)
+
 CREATE TABLE users(
 	id SERIAL PRIMARY KEY,
 	email VARCHAR(255) UNIQUE NOT NULL,
@@ -41,3 +66,5 @@ exit
 docker run --name brainbox-minio -d -p 9000:9000 -p 9001:9001 minio/minio server /data --console-address ":9001"
 
 docker run --name brainbox-rabbitmq -d -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+
+Скачать ffmpeg и указать путь к bin в Path

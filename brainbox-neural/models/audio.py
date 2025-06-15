@@ -42,4 +42,4 @@ class AudioMessage(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<Message(id={self.id};user_id={self.user_id};system_answer={self.is_from_user});text={self.message_text};audio_path={self.audio_uid if self.audio_uid else "None"};created_at={self.created_at}>"
+        return f"<Message(id={self.id};user_id={self.user_id};system_answer={self.is_from_user});text={self.message_text};audio_path={self.audio_uid if self.audio_uid else None};created_at={self.created_at}>"

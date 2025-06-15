@@ -1,4 +1,3 @@
-import React from "react";
 import Login from "./components/LoginPage/Login/Login";
 import Home from "./components/HomePage/Home/Home";
 import Loading from "./components/LoadingPage/Loading";
