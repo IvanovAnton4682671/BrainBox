@@ -22,3 +22,10 @@ class AudioUploadResponse(BaseModel):
     message: str = Field(..., description="Статус обработки")
     text: Optional[str] = Field(None, description="Распознанный текст")
     audio_uid: Optional[str] = Field(None, description="Специальный ID аудио-сообщения")
+
+    def to_dict(self):
+        return {
+            "message": self.message,
+            "text": self.text,
+            "audio_uid": self.audio_uid
+        }

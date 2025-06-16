@@ -1,9 +1,11 @@
+import React from "react";
+import Loading from "./components/LoadingPage/Loading";
 import Login from "./components/LoginPage/Login/Login";
 import Home from "./components/HomePage/Home/Home";
-import Loading from "./components/LoadingPage/Loading";
 import { ChatProvider } from "./utils/stateManager/chatContext";
 import { useAuth } from "./utils/hooks/useAuth";
 import { AuthProvider } from "./utils/stateManager/authContext";
+import { WebSocketProvider } from "./utils/stateManager/wsContext";
 
 function AppContent() {
   const { isAuthenticated, isSessionChecked, logout } = useAuth();
@@ -33,9 +35,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <WebSocketProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </WebSocketProvider>
   );
 }
 

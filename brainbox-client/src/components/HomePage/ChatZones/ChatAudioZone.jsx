@@ -6,6 +6,7 @@ import {
   checkTaskStatus,
   deleteAudioMessages,
 } from "../../../utils/api/audio";
+import { useWebSocketContext } from "../../../utils/stateManager/wsContext";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "./ChatAudioZone.module.css";
 
@@ -20,17 +21,41 @@ function ChatAudioZone() {
   } = useChat();
   //статус обработки отправленного аудио-файла
   const [isUploading, setIsUploading] = React.useState(false);
+  const { addMessageHandler } = useWebSocketContext();
   //интервал опроса task_id
-  const intervalsRef = React.useRef({});
+  //const intervalsRef = React.useRef({});
 
   React.useEffect(() => {
+    const handler = (message) => {
+      if (
+        message.type === "task_completed" &&
+        pendingTasks.current[message.task_id]
+      ) {
+        removeTypingIndicator("speechToText");
+        console.log(`Полученное сообщение: ${message}`);
+        sendMessage({
+          text: message.result.text,
+          type: "response",
+          createdAt: new Date().toISOString(),
+          service: "speechToText",
+        });
+        delete pendingTasks.current[message.task_id];
+      }
+    };
+    const unsubscribe = addMessageHandler(handler);
+    return unsubscribe;
+  }, [removeTypingIndicator, sendMessage]);
+
+  const pendingTasks = React.useRef({});
+
+  /*React.useEffect(() => {
     return () => {
       Object.values(intervalsRef.current).forEach((interval) => {
         clearInterval(interval);
       });
       intervalsRef.current = {};
     };
-  }, []);
+  }, []);*/
 
   //обработка отправки аудио-сообщения через родительский метод взаимодействия с контекстом
   const handleAudioUpload = async (e) => {
@@ -60,7 +85,8 @@ function ChatAudioZone() {
       addTypingIndicator("speechToText");
       //сразу запрос на распознавание отправленного файла
       const { task_id } = await recognizeSavedAudio(uploadResult.audio_uid);
-      let attempts = 0;
+      pendingTasks.current[task_id] = true;
+      /*let attempts = 0;
       const maxAttempts = 120;
       intervalsRef.current[task_id] = setInterval(async () => {
         attempts++;
@@ -94,7 +120,7 @@ function ChatAudioZone() {
           console.error("Handle audio upload error: ", error);
           throw error;
         }
-      }, 1000);
+      }, 1000);*/
     } catch (error) {
       removeTypingIndicator("speechToText");
       console.error("Handle audio upload error: ", error);

@@ -7,6 +7,11 @@ from core.rabbitmq import rabbitmq
 async def create_text_task(session_id: str, message_text: str) -> str:
     task_id = str(uuid.uuid4())
     await redis.setex(
+        name=f"task_session:{task_id}",
+        time=3600,
+        value=session_id
+    )
+    await redis.setex(
         name=f"text_task:{task_id}",
         time=3600,
         value=json.dumps({

@@ -6,6 +6,11 @@ import json
 
 async def create_audio_task(session_id: str, audio_uid: str) -> str:
     task_id = str(uuid.uuid4())
+    await redis.setex(
+        name=f"task_session:{task_id}",
+        time=3600,
+        value=session_id
+    )
     #сохраняем в Redis на час
     await redis.setex(
         name=f"audio_task:{task_id}",

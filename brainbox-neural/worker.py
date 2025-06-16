@@ -35,7 +35,7 @@ async def _process_task_result(task_id: str, result: dict, response_queue: str):
     queue_type = str(response_queue.split("_")[0])
     message_data = {
         "task_id": task_id,
-        "result": result
+        "result": result.to_dict()
     }
     message = Message(
         queue_name=response_queue,
@@ -55,6 +55,19 @@ async def process_audio_task(task_id: str, *, session_id: str, audio_uid: str):
     """
 
     try:
+        task_key = f"audio_task:{task_id}"
+        task_status = await redis.get(task_key)
+        if task_status == b"completed":
+            logger.warning(f"Задача {task_id} уже завершена, пропускаем...")
+            return
+        if task_status == b"processing":
+            logger.warning(f"Задача {task_id} уже обрабатывается, пропускаем...")
+            return
+        await redis.setex(
+            name=task_key,
+            time=3600,
+            value="processing"
+        )
         async with async_session_maker() as session:
             try:
                 user_id = await auth_interface.get_user_id(session_id)
@@ -65,12 +78,26 @@ async def process_audio_task(task_id: str, *, session_id: str, audio_uid: str):
                     result,
                     settings.RABBITMQ_AUDIO_RESPONSES
                 )
+                await redis.setex(
+                    name=task_key,
+                    time=3600,
+                    value="completed"
+                )
             except Exception as e:
                 await session.rollback()
+                await redis.delete(task_key)
                 raise
             finally:
                 await session.close()
+        await redis.setex(
+            name=task_key,
+            time=3600,
+            value="completed"
+        )
     except Exception as e:
+        if await redis.exists(task_key):
+            await redis.delete(task_key)
+        logger.error(f"Ошибка обработки задачи {task_id}: {str(e)}", exc_info=True)
         raise
 
 @dramatiq.actor(queue_name=settings.RABBITMQ_TEXT_REQUESTS)
@@ -132,8 +159,8 @@ async def process_image_task(task_id: str, *, session_id: str, message_text: str
         raise
 
 @dramatiq.actor(queue_name=settings.RABBITMQ_AUDIO_RESPONSES)
-def handle_audio_result(task_id: str, *, status: str):
-    logger.info(f"Аудио-задача {task_id} завершена со статусом {status}")
+def handle_audio_result(task_id: str, *, result: str):
+    logger.info(f"Аудио-задача {task_id} завершена с результатом {result}")
 
 @dramatiq.actor(queue_name=settings.RABBITMQ_TEXT_RESPONSES)
 def handle_text_result(task_id: str, *, status: str):

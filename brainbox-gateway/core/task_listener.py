@@ -5,6 +5,7 @@ from databases.redis import redis
 from core.config import settings
 from contextlib import suppress
 import asyncio
+from core.ws_manager import ws_connection_manager
 
 logger = setup_logger("core/task_listener.py")
 
@@ -21,24 +22,45 @@ class TaskListener:
         Асинхронная обработка входящих сообщений
         """
 
-        async with message.process():
-            try:
-                data = json.loads(message.body.decode())
-                task_id = data["task_id"]
-                result = data["result"]
-                redis_key = f"{queue_type}_task_result:{task_id}"
-                await redis.setex(
-                    name=redis_key,
-                    time=3600,
-                    value=json.dumps(result)
-                )
-                logger.info(f"Результат задачи {task_id} сохранён в {redis_key}")
-            except Exception as e:
-                logger.error(f"Ошибка при обработке сообщения: {str(e)}", exc_info=True)
-                await message.nack(requeue=True)
-                raise
+        try:
+            logger.warning(f"Получено сообщение из очереди {queue_type}: {message.body}")
+            data = json.loads(message.body.decode())
+            if "kwargs" in data:
+                task_id = data["kwargs"].get("task_id")
+                result = data["kwargs"].get("result")
             else:
-                await message.ack()
+                task_id = data.get("task_id")
+                result = data.get("result")
+            if task_id is None or result is None:
+                logger.error(f"Получено сообщение некорректного формата: {message}")
+                await message.nack(requeue=False) #отклоняем без повторной очереди
+                return
+            logger.warning(f"Задача {task_id} обработана с результатом {result}")
+            redis_key = f"{queue_type}_task_result:{task_id}"
+            await redis.setex(
+                name=redis_key,
+                time=3600,
+                value=json.dumps(result)
+            )
+            session_id = await redis.get(f"task_session:{task_id}")
+            if not session_id:
+                logger.error(f"Для задачи {task_id} session_id не найден!")
+                await message.ack() #подтверждаем так как обработали
+                return
+            logger.warning(f"Отправляем уведомление для сессии {session_id}, задача {task_id}")
+            if await ws_connection_manager.send_message({
+                "type": "task_completed",
+                "task_id": task_id,
+                "result": result
+            }, session_id):
+                logger.warning(f"Для задачи {task_id} уведомление отправлено!")
+            else:
+                logger.warning(f"Не удалось отправить уведомление для задачи {task_id}!")
+            logger.warning(f"Результат задачи {task_id} сохранён в {redis_key}")
+            await message.ack() #явное подтверждение после успешной обработки
+        except Exception as e:
+            logger.error(f"Ошибка при обработке сообщения: {str(e)}", exc_info=True)
+            await message.nack(requeue=False)
 
     async def _listen_to_queue(self, queue_name: str) -> None:
         """
