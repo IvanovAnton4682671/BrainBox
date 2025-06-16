@@ -1,9 +1,14 @@
+import { useWebSocketContext } from "../../../utils/stateManager/wsContext";
 import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
 import { IoPersonCircleSharp } from "react-icons/io5";
+import { MdOutlineSignalWifiStatusbar4Bar } from "react-icons/md";
+import { MdOutlineSignalWifiStatusbarConnectedNoInternet4 } from "react-icons/md";
 import styles from "./Header.module.css";
 
 function Header({ handleLogout, userName }) {
+  const { isConnected } = useWebSocketContext();
+
   const handleConfirmExit = async () => {
     if (window.confirm("Вы уверены, что хотите выйти из аккаунта?")) {
       const success = await handleLogout();
@@ -25,6 +30,13 @@ function Header({ handleLogout, userName }) {
         </div>
       </div>
       <div className={styles.person}>
+        {isConnected ? (
+          <MdOutlineSignalWifiStatusbar4Bar className={styles.wsStatusOn} />
+        ) : (
+          <MdOutlineSignalWifiStatusbarConnectedNoInternet4
+            className={styles.wsStatusOff}
+          />
+        )}
         <IoPersonCircleSharp className={styles.personIcon} />
         <span className={styles.userName}>Привет, {userName}</span>
         <button

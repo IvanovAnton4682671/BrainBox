@@ -52,7 +52,7 @@ async def websocket_endpoint(websocket: WebSocket):
     WebSocket endpoint для клиентских уведомлений
     """
 
-    logger.warning("ПРобуем установить соединение с клиентом")
+    logger.warning("Пробуем установить соединение с клиентом")
     connected = await ws_connection_manager.connect(websocket)
     if not connected:
         logger.warning("соединение отсутствует, дальше работать невозможно")
@@ -70,6 +70,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
+            logger.warning(f"Получили данные от вебсокета: {data}")
             if data != "ping":
                 logger.warning(f"Получены некорректные данные от WebSocket: {data}")
     except WebSocketDisconnect:

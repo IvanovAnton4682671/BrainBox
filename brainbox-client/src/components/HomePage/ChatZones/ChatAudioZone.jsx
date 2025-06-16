@@ -21,9 +21,15 @@ function ChatAudioZone() {
   } = useChat();
   //статус обработки отправленного аудио-файла
   const [isUploading, setIsUploading] = React.useState(false);
-  const { addMessageHandler } = useWebSocketContext();
+  const { addMessageHandler, isConnected } = useWebSocketContext();
   //интервал опроса task_id
   //const intervalsRef = React.useRef({});
+
+  React.useEffect(() => {
+    if (isConnected) {
+      console.log("WebSocket is connected and ready");
+    }
+  }, [isConnected]);
 
   React.useEffect(() => {
     const handler = (message) => {

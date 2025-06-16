@@ -49,6 +49,16 @@
   gap: 10px;
 }
 
+.wsStatusOn {
+  font-size: 30px;
+  color: #56d31d;
+}
+
+.wsStatusOff {
+  font-size: 30px;
+  color: #e52844;
+}
+
 .personIcon {
   color: #ffffff;
   font-size: 40px;

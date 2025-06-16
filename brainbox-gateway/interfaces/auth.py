@@ -8,7 +8,7 @@ class AuthInterface:
     def __init__(self):
         self.base_url = f"{settings.AUTH_SERVICE_URL}/auth"
         self.client = AsyncClient(
-            timeout=Timeout(10.0),
+            timeout=Timeout(120.0),
             limits=Limits(max_connections=100),
             transport=AsyncHTTPTransport(retries=3)
         )

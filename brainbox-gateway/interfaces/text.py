@@ -8,7 +8,7 @@ class TextInterface:
     def __init__(self):
         self.base_url = f"{settings.NEURAL_SERVICE_URL}/text"
         self.client = AsyncClient(
-            timeout=Timeout(60.0),
+            timeout=Timeout(120.0),
             limits=Limits(max_connections=100),
             transport=AsyncHTTPTransport(retries=3)
         )
