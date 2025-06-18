@@ -40,3 +40,10 @@ class TextMessageCreate(UserID, IsFromUser, MessageText):
 
 class TextMessageResponse(IsFromUser, MessageText, CreatedAt):
     pass
+
+    def to_dict(self):
+        return {
+            "is_from_user": self.is_from_user,
+            "message_text": self.message_text,
+            "created_at": self.created_at.isoformat()
+        }

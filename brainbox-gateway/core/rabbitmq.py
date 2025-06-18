@@ -83,7 +83,7 @@ class RabbitMQ:
                 self.connection = await aio_pika.connect_robust(
                     url=settings.RABBITMQ_URL,
                     client_properties={"connection_name": "gateway-main"},
-                    #on_reconnect=self._on_reconnect
+                    on_reconnect=self._on_reconnect
                 )
                 self.channel = await self.connection.channel()
                 await self._declare_queues()

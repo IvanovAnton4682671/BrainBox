@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  generateAnswer,
-  deleteTextMessages,
-  checkTaskStatus,
-} from "../../../utils/api/text";
+import { generateAnswer, deleteTextMessages } from "../../../utils/api/text";
 import { useChat } from "../../../utils/stateManager/chatContext";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
@@ -12,28 +8,11 @@ import styles from "./ChatTextZone.module.css";
 
 function ChatTextZone() {
   //получаем поле и метод из состояния
-  const {
-    activeService,
-    deleteChat,
-    sendMessage,
-    addTypingIndicator,
-    removeTypingIndicator,
-  } = useChat();
+  const { activeService, deleteChat, sendMessage, startGlobalTask } = useChat();
   //состояние для работы с textarea
   const [inputValue, setInputValue] = React.useState("");
   //состояние для определения статуса загрузки сообщения
   const [isUploading, setIsUploading] = React.useState(false);
-  //интервал опроса по task_id
-  const intervalsRef = React.useRef({});
-
-  React.useEffect(() => {
-    return () => {
-      Object.values(intervalsRef.current).forEach((interval) => {
-        clearInterval(interval);
-      });
-      intervalsRef.current = {};
-    };
-  }, []);
 
   //очистка textarea
   const handleInputClear = () => {
@@ -52,48 +31,30 @@ function ChatTextZone() {
           createdAt: new Date().toISOString(),
           service: "chatBot",
         });
-        //сразу начинаем опрос по task_id
         setInputValue("");
-        addTypingIndicator("chatBot");
         const { task_id } = await generateAnswer(text);
-        let attempts = 0;
-        const maxAttempts = 120;
-        intervalsRef.current[task_id] = setInterval(async () => {
-          attempts++;
-          try {
-            const statusResponse = await checkTaskStatus(task_id);
-            if (statusResponse.status === "completed") {
-              clearInterval(intervalsRef.current[task_id]);
-              delete intervalsRef.current[task_id];
-              removeTypingIndicator("chatBot");
-              sendMessage({
-                text: statusResponse.result.message_text,
-                type: "response",
-                table: "text_chat",
-                createdAt: new Date().toISOString(),
-                service: "chatBot",
-              });
-            } else if (attempts >= maxAttempts) {
-              clearInterval(intervalsRef.current[task_id]);
-              delete intervalsRef.current[task_id];
-              removeTypingIndicator("chatBot");
-              sendMessage({
-                text: "Таймаут генерации",
-                type: "response",
-                createdAt: new Date().toISOString(),
-                service: "chatBot",
-              });
-            }
-          } catch (error) {
-            clearInterval(intervalsRef.current[task_id]);
-            delete intervalsRef.current[task_id];
-            removeTypingIndicator("chatBot");
-            console.error("Handle send message error: ", error);
-            throw error;
+        startGlobalTask(
+          "chatBot",
+          task_id,
+          (result) => {
+            sendMessage({
+              text: result.message_text,
+              type: "response",
+              table: "text_chat",
+              createdAt: new Date().toISOString(),
+              service: "chatBot",
+            });
+          },
+          (error) => {
+            sendMessage({
+              text: "Таймаут генерации",
+              type: "response",
+              createdAt: new Date().toISOString(),
+              service: "chatBot",
+            });
           }
-        }, 1000);
+        );
       } catch (error) {
-        removeTypingIndicator("chatBot");
         console.error("Handle send message error: ", error);
         throw error;
       } finally {

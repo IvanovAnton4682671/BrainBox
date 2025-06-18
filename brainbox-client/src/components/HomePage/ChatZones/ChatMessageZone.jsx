@@ -50,7 +50,7 @@ function ChatMessageZone({ messages }) {
       <div className={styles.messageBox} ref={messageBoxRef}>
         {messages.map((message, index) => (
           <div
-            key={message.id || index}
+            key={message.id || `msg-${index}-${Date.now()}`}
             className={
               message.type === "user"
                 ? styles.userMessage

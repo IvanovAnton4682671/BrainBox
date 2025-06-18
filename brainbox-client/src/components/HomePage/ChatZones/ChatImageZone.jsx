@@ -1,10 +1,6 @@
 import React from "react";
 import { useChat } from "../../../utils/stateManager/chatContext";
-import {
-  generateAnswer,
-  checkTaskStatus,
-  deleteImageMessages,
-} from "../../../utils/api/image";
+import { generateAnswer, deleteImageMessages } from "../../../utils/api/image";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
 import { MdArrowUpward } from "react-icons/md";
@@ -12,28 +8,11 @@ import styles from "./ChatImageZone.module.css";
 
 function ChatImageZone() {
   //получаем поле и метод из состояния
-  const {
-    activeService,
-    deleteChat,
-    sendMessage,
-    addTypingIndicator,
-    removeTypingIndicator,
-  } = useChat();
+  const { activeService, deleteChat, sendMessage, startGlobalTask } = useChat();
   //состояние для работы с textarea
   const [inputValue, setInputValue] = React.useState("");
   //состояние для определения статуса загрузки сообщения
   const [isUploading, setIsUploading] = React.useState(false);
-  //интервал опроса по task_id
-  const intervalsRef = React.useRef({});
-
-  React.useEffect(() => {
-    return () => {
-      Object.values(intervalsRef.current).forEach((interval) => {
-        clearInterval(interval);
-      });
-      intervalsRef.current = {};
-    };
-  }, []);
 
   //очистка textarea
   const handleInputClear = () => {
@@ -52,46 +31,29 @@ function ChatImageZone() {
           service: "imageGeneration",
         });
         setInputValue("");
-        addTypingIndicator("imageGeneration");
         const { task_id } = await generateAnswer(text);
-        let attempts = 0;
-        const maxAttempts = 120;
-        intervalsRef.current[task_id] = setInterval(async () => {
-          attempts++;
-          try {
-            const statusResponse = await checkTaskStatus(task_id);
-            if (statusResponse.status === "completed") {
-              clearInterval(intervalsRef.current[task_id]);
-              delete intervalsRef.current[task_id];
-              removeTypingIndicator("imageGeneration");
-              sendMessage({
-                image_uid: statusResponse.result.image_uid,
-                type: "response",
-                table: "image_chat",
-                createdAt: new Date().toISOString(),
-                service: "imageGeneration",
-              });
-            } else if (attempts >= maxAttempts) {
-              clearInterval(intervalsRef.current[task_id]);
-              delete intervalsRef.current[task_id];
-              removeTypingIndicator("imageGeneration");
-              sendMessage({
-                text: "Таймаут генерации",
-                type: "response",
-                createdAt: new Date().toISOString(),
-                service: "imageGeneration",
-              });
-            }
-          } catch (error) {
-            clearInterval(intervalsRef.current[task_id]);
-            delete intervalsRef.current[task_id];
-            removeTypingIndicator("imageGeneration");
-            console.error("Handle send message error: ", error);
-            throw error;
+        startGlobalTask(
+          "imageGeneration",
+          task_id,
+          (result) => {
+            sendMessage({
+              image_uid: result.image_uid,
+              type: "response",
+              table: "image_chat",
+              createdAt: new Date().toISOString(),
+              service: "imageGeneration",
+            });
+          },
+          (error) => {
+            sendMessage({
+              text: "Таймаут генерации",
+              type: "response",
+              createdAt: new Date().toISOString(),
+              service: "imageGeneration",
+            });
           }
-        }, 1000);
+        );
       } catch (error) {
-        removeTypingIndicator("imageGeneration");
         console.error("Handle send message error: ", error);
         throw error;
       } finally {

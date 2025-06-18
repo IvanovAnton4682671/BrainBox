@@ -1,4 +1,6 @@
 import React from "react";
+import { useCallback, useEffect } from "react";
+import { checkTaskStatus } from "../api/task";
 
 //создание контекста для управления состоянием чатов
 const ChatContext = React.createContext();
@@ -32,10 +34,6 @@ const chatReducer = (state, action) => {
         ...state,
         chats: {
           ...state.chats,
-          /*[state.activeService]: [
-            ...state.chats[state.activeService], //существующие сообщения
-            action.payload, //новое сообщение
-          ],*/
           [action.payload.service || state.activeService]: [
             ...state.chats[action.payload.service || state.activeService],
             {
@@ -57,9 +55,10 @@ const chatReducer = (state, action) => {
           [action.payload.service]: [
             ...state.chats[action.payload.service],
             {
-              id: "typing-indicator",
+              id: `typing-indicator-${action.payload.taskId}`,
               type: "typing",
               service: action.payload.service,
+              taskId: action.payload.taskId,
             },
           ],
         },
@@ -70,10 +69,22 @@ const chatReducer = (state, action) => {
         chats: {
           ...state.chats,
           [action.payload.service]: state.chats[action.payload.service].filter(
-            (msg) => msg.id !== "typing-indicator"
+            (msg) => msg.id !== `typing-indicator-${action.payload.taskId}`
           ),
         },
       };
+    case "START_TASK":
+      return {
+        ...state,
+        tasks: new Map(state.tasks).set(action.payload.taskId, {
+          service: action.payload.service,
+          intervalId: action.payload.intervalId,
+        }),
+      };
+    case "STOP_TASK":
+      const newTasks = new Map(state.tasks);
+      newTasks.delete(action.payload.taskId);
+      return { ...state, tasks: newTasks };
     case "DELETE_CHAT":
       //очистка чата: заменяем массив сообщений сервиса пустым
       return { ...state, chats: { ...state.chats, [action.payload]: [] } };
@@ -119,33 +130,6 @@ const chatReducer = (state, action) => {
           }));
       }
       return newState;
-    /*if (!action.payload?.messages) return state;
-      const audioMessages = action.payload.messages
-        .filter((msg) => msg.table === "audio_chat") //только аудио-сообщения
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-        .map((msg) => ({
-          text: msg.message_text,
-          isAudio: Boolean(msg.audio_uid),
-          type: msg.is_from_user ? "user" : "response",
-          audio_uid: msg.audio_uid,
-          createdAt: msg.created_at,
-        }));
-      const textMessages = action.payload.messages
-        .filter((msg) => msg.table === "text_chat") //только текстовые сообщения
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-        .map((msg) => ({
-          text: msg.message_text,
-          type: msg.is_from_user ? "user" : "response",
-          createdAt: msg.created_at,
-        }));
-      return {
-        ...state,
-        chats: {
-          ...state.chats,
-          speechToText: audioMessages,
-          chatBot: textMessages,
-        },
-      };*/
     default:
       return state;
   }
@@ -156,7 +140,8 @@ export const ChatProvider = ({ children }) => {
   //используем useReducer для управления сложным состоянием
   const [state, dispatch] = React.useReducer(chatReducer, {
     chats: initialChats, //начальное состояние чатов
-    activeService: null, //изначально ни один сервис не выбран
+    activeService: null, //изначально ни один сервис не выбран,
+    tasks: new Map(), //для хранения активных задач
   });
 
   //эффект для загрузки сохраненных чатов из Local Storage при монтировании
@@ -172,6 +157,65 @@ export const ChatProvider = ({ children }) => {
     localStorage.setItem("chats", JSON.stringify(state.chats));
   }, [state.chats]); //срабатывает при любом изменении state.chats
 
+  const startGlobalTask = useCallback(
+    (serviceType, taskId, resultHandler, errorHandler) => {
+      dispatch({
+        type: "ADD_TYPING_INDICATOR",
+        payload: { service: serviceType, taskId },
+      });
+
+      let attempts = 0;
+      const maxAttempts = 120;
+
+      const intervalId = setInterval(async () => {
+        attempts++;
+        try {
+          const statusResponse = await checkTaskStatus(taskId, serviceType);
+          if (statusResponse.status === "completed") {
+            clearInterval(intervalId);
+            dispatch({ type: "STOP_TASK", payload: { taskId } });
+            dispatch({
+              type: "REMOVE_TYPING_INDICATOR",
+              payload: { service: serviceType, taskId },
+            });
+            resultHandler(statusResponse.result);
+          } else if (attempts >= maxAttempts) {
+            clearInterval(intervalId);
+            dispatch({ type: "STOP_TASK", payload: { taskId } });
+            dispatch({
+              type: "REMOVE_TYPING_INDICATOR",
+              payload: { service: serviceType, taskId },
+            });
+            errorHandler("Таймаут операции");
+          }
+        } catch (error) {
+          clearInterval(intervalId);
+          dispatch({ type: "STOP_TASK", payload: { taskId } });
+          dispatch({
+            type: "REMOVE_TYPING_INDICATOR",
+            payload: { service: serviceType, taskId },
+          });
+          errorHandler(`Ошибка: ${error.message}`);
+        }
+      }, 1000);
+
+      dispatch({
+        type: "START_TASK",
+        payload: { taskId, service: serviceType, intervalId },
+      });
+    },
+    []
+  );
+
+  // Очистка при размонтировании приложения
+  useEffect(() => {
+    return () => {
+      state.tasks.forEach((task, taskId) => {
+        clearInterval(task.intervalId);
+      });
+    };
+  }, []);
+
   //формируем объект значения контекста
   const value = {
     ...state, //распространяем текущее состояние
@@ -180,20 +224,11 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: "SELECT_SERVICE", payload: serviceId }),
     sendMessage: (message) =>
       dispatch({ type: "SEND_MESSAGE", payload: message }),
-    addTypingIndicator: (serviceId) =>
-      dispatch({
-        type: "ADD_TYPING_INDICATOR",
-        payload: { service: serviceId },
-      }),
-    removeTypingIndicator: (serviceId) =>
-      dispatch({
-        type: "REMOVE_TYPING_INDICATOR",
-        payload: { service: serviceId },
-      }),
     deleteChat: (serviceId) =>
       dispatch({ type: "DELETE_CHAT", payload: serviceId }),
     loadServerChats: (serverData) =>
       dispatch({ type: "LOAD_SERVER_CHATS", payload: serverData }),
+    startGlobalTask,
   };
 
   //возвращаем провайдер с передачей контекста

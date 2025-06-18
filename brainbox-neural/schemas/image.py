@@ -46,3 +46,9 @@ class ImageMessageRequest(UserID, MessageText):
 
 class ImageMessageResponse(UserID, ImageUID):
     pass
+
+    def to_dict(self):
+        return {
+            "user_id": self.user_id,
+            "image_uid": self.image_uid
+        }

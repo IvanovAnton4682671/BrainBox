@@ -3,8 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.logger import setup_logger
 from routers import audio, auth, text, image
-from core.task_listener import task_listener
-import asyncio
 import uvicorn
 from core.rabbitmq import rabbitmq
 from contextlib import asynccontextmanager
@@ -14,10 +12,7 @@ logger = setup_logger("http")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await rabbitmq.connect()
-    listener_task = asyncio.create_task(task_listener.start())
     yield
-    await task_listener.stop()
-    await listener_task
     await rabbitmq.close()
 
 app = FastAPI(

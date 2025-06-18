@@ -3,7 +3,6 @@ import { useChat } from "../../../utils/stateManager/chatContext";
 import {
   uploadAudio,
   recognizeSavedAudio,
-  checkTaskStatus,
   deleteAudioMessages,
 } from "../../../utils/api/audio";
 import { FaRegTrashAlt } from "react-icons/fa";
@@ -11,26 +10,9 @@ import styles from "./ChatAudioZone.module.css";
 
 function ChatAudioZone() {
   //получаем поле и метод из состояния
-  const {
-    activeService,
-    deleteChat,
-    sendMessage,
-    addTypingIndicator,
-    removeTypingIndicator,
-  } = useChat();
+  const { activeService, deleteChat, sendMessage, startGlobalTask } = useChat();
   //статус обработки отправленного аудио-файла
   const [isUploading, setIsUploading] = React.useState(false);
-  //интервал опроса task_id
-  const intervalsRef = React.useRef({});
-
-  React.useEffect(() => {
-    return () => {
-      Object.values(intervalsRef.current).forEach((interval) => {
-        clearInterval(interval);
-      });
-      intervalsRef.current = {};
-    };
-  }, []);
 
   //обработка отправки аудио-сообщения через родительский метод взаимодействия с контекстом
   const handleAudioUpload = async (e) => {
@@ -57,46 +39,29 @@ function ChatAudioZone() {
         createdAt: new Date().toISOString(),
         service: "speechToText",
       });
-      addTypingIndicator("speechToText");
       //сразу запрос на распознавание отправленного файла
       const { task_id } = await recognizeSavedAudio(uploadResult.audio_uid);
-      let attempts = 0;
-      const maxAttempts = 120;
-      intervalsRef.current[task_id] = setInterval(async () => {
-        attempts++;
-        try {
-          const statusResponse = await checkTaskStatus(task_id);
-          if (statusResponse.status === "completed") {
-            clearInterval(intervalsRef.current[task_id]);
-            delete intervalsRef.current[task_id];
-            removeTypingIndicator("speechToText");
-            sendMessage({
-              text: statusResponse.result.text,
-              type: "response",
-              createdAt: new Date().toISOString(),
-              service: "speechToText",
-            });
-          } else if (attempts >= maxAttempts) {
-            clearInterval(intervalsRef.current[task_id]);
-            delete intervalsRef.current[task_id];
-            removeTypingIndicator("speechToText");
-            sendMessage({
-              text: "Таймаут распознавания",
-              type: "response",
-              createdAt: new Date().toISOString(),
-              service: "speechToText",
-            });
-          }
-        } catch (error) {
-          clearInterval(intervalsRef.current[task_id]);
-          delete intervalsRef.current[task_id];
-          removeTypingIndicator("speechToText");
-          console.error("Handle audio upload error: ", error);
-          throw error;
+      startGlobalTask(
+        "speechToText",
+        task_id,
+        (result) => {
+          sendMessage({
+            text: result.text,
+            type: "response",
+            createdAt: new Date().toISOString(),
+            service: "speechToText",
+          });
+        },
+        (error) => {
+          sendMessage({
+            text: "Таймаут распознавания",
+            type: "response",
+            createdAt: new Date().toISOString(),
+            service: "speechToText",
+          });
         }
-      }, 1000);
+      );
     } catch (error) {
-      removeTypingIndicator("speechToText");
       console.error("Handle audio upload error: ", error);
       throw error;
     } finally {
