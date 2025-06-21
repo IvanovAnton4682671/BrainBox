@@ -26,7 +26,7 @@ class TempWrapper(BaseModel):
     def to_dict(self):
         return {"image_uid": self.image_uid}
 
-broker = RabbitmqBroker(url=settings.RABBITMQ_URL)
+broker = RabbitmqBroker(url="amqp://guest:guest@localhost:30004")
 broker.add_middleware(AsyncIO())
 dramatiq.set_broker(broker)
 

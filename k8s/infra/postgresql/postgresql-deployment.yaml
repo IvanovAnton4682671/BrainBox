@@ -1,0 +1,201 @@
+#Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: brainbox-postgresql-secret
+  namespace: brainbox
+type: Opaque
+stringData:
+  postgres-password: postgres
+  brainboxusersadmin-password: brainboxusersadmin
+  brainboxchatsadmin-password: brainboxchatsadmin
+
+---
+#PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: brainbox-postgresql-persistentvolumeclaim
+  namespace: brainbox
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+#ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-postgresql-configmap
+  namespace: brainbox
+data:
+  01-init.sql: |
+    CREATE USER brainboxusersadmin WITH PASSWORD 'brainboxusersadmin';
+    CREATE USER brainboxchatsadmin WITH PASSWORD 'brainboxchatsadmin';
+    CREATE DATABASE brainboxusers;
+    CREATE DATABASE brainboxchats;
+    GRANT ALL PRIVILEGES ON DATABASE brainboxusers TO brainboxusersadmin;
+    GRANT ALL PRIVILEGES ON DATABASE brainboxchats TO brainboxchatsadmin;
+  
+  02-init-users.sql: |
+    \connect brainboxusers
+    CREATE TABLE IF NOT EXISTS users(
+      id SERIAL PRIMARY KEY,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      name VARCHAR(20) UNIQUE NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::TIMESTAMP NOT NULL,
+      last_login TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::TIMESTAMP NOT NULL
+    );
+    GRANT ALL PRIVILEGES ON TABLE users TO brainboxusersadmin;
+    GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO brainboxusersadmin;
+  
+  03-init-chats.sql: |
+    \connect brainboxchats
+    CREATE TABLE IF NOT EXISTS audio_chat(
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL,
+      is_from_user BOOLEAN NOT NULL,
+      message_text TEXT NOT NULL,
+      audio_uid VARCHAR(36),
+      created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::TIMESTAMP NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS image_chat(
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL,
+      is_from_user BOOLEAN NOT NULL,
+      message_text TEXT,
+      image_uid VARCHAR(36),
+      created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::TIMESTAMP NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS text_chat(
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL,
+      is_from_user BOOLEAN NOT NULL,
+      message_text TEXT NOT NULL,
+      created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::TIMESTAMP NOT NULL
+    );
+    GRANT ALL PRIVILEGES ON TABLE audio_chat, image_chat, text_chat TO brainboxchatsadmin;
+    GRANT USAGE, SELECT ON SEQUENCE audio_chat_id_seq, image_chat_id_seq, text_chat_id_seq TO brainboxchatsadmin;
+
+  run.sh: |-
+    #!/bin/sh
+    set -e
+    
+    # Запускаем PostgreSQL в фоновом режиме
+    docker-entrypoint.sh postgres &
+    
+    # Ждем пока PostgreSQL станет доступен
+    until pg_isready -U postgres; do
+      sleep 1
+    done
+    
+    # Выполняем скрипты инициализации с обработкой ошибок
+    for script in /scripts/01-init.sql /scripts/02-init-users.sql /scripts/03-init-chats.sql; do
+      psql -U postgres -f "$script" || true
+    done
+    
+    # Правильный способ остановки PostgreSQL от имени пользователя postgres
+    PGUSER=postgres PGPASSWORD=$POSTGRES_PASSWORD pg_ctl -D "$PGDATA" stop -m fast
+    
+    # Ждем завершения
+    wait
+
+---
+#StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: brainbox-postgresql-statefulset
+  namespace: brainbox
+spec:
+  serviceName: brainbox-postgresql-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-postgresql
+  template:
+    metadata:
+      labels:
+        app: brainbox-postgresql
+    spec:
+      securityContext:
+        fsGroup: 999
+      initContainers:
+      - name: db-init
+        image: postgres:15-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - /scripts/run.sh
+        env:
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        securityContext:
+          runAsUser: 999
+          runAsGroup: 999
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        - name: scripts
+          mountPath: /scripts
+      containers:
+      - name: postgresql
+        image: postgres:15-alpine
+        securityContext:
+          runAsUser: 999
+          runAsGroup: 999
+          allowPrivilegeEscalation: false
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: brainbox-postgresql-secret
+              key: postgres-password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: scripts
+        configMap:
+          name: brainbox-postgresql-configmap
+          defaultMode: 0777
+      - name: data
+        persistentVolumeClaim:
+          claimName: brainbox-postgresql-persistentvolumeclaim
+
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: brainbox-postgresql-service
+  namespace: brainbox
+spec:
+  type: NodePort
+  selector:
+    app: brainbox-postgresql
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+    nodePort: 30003

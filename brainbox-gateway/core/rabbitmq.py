@@ -81,7 +81,8 @@ class RabbitMQ:
             logger.info("Устанавливаем соединение с RabbitMQ...")
             try:
                 self.connection = await aio_pika.connect_robust(
-                    url=settings.RABBITMQ_URL,
+                    #url=settings.RABBITMQ_URL,
+                    url="amqp://guest:guest@localhost:30004",
                     client_properties={"connection_name": "gateway-main"},
                     on_reconnect=self._on_reconnect
                 )

@@ -6,7 +6,8 @@ import io
 class AudioStorage:
     def __init__(self):
         self.client = Minio(
-            endpoint=settings.MINIO_URL,
+            #endpoint=settings.MINIO_URL,
+            endpoint="localhost:30001",
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=settings.MINIO_SECRET_KEY,
             secure=settings.MINIO_SECURE
@@ -48,7 +49,8 @@ class AudioStorage:
 class ImageStorage:
     def __init__(self):
         self.client = Minio(
-            endpoint=settings.MINIO_URL,
+            #endpoint=settings.MINIO_URL,
+            endpoint="localhost:30001",
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=settings.MINIO_SECRET_KEY,
             secure=settings.MINIO_SECURE
