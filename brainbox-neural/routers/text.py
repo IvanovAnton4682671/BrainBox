@@ -44,6 +44,8 @@ async def get_text_messages(request: Request, session: AsyncSession = Depends(ge
         user_id = await auth_interface.get_user_id(session_id)
         text_service = TextService(session)
         messages = await text_service.get_messages(user_id)
+        if messages is None:
+            return {"success": True, "messages": []}
         return {
             "success": True,
             "messages": messages

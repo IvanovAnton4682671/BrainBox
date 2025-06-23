@@ -29,12 +29,8 @@ export const userRegister = async (email, name, password) => {
       name: name,
       password: password,
     });
-    console.log(
-      `Выполнился запрос с данными ${email}, ${name}, ${password} на адрес ${GATEWAY_URL_AUTH}/register`
-    );
     return response.data;
   } catch (error) {
-    console.log(`Ошибка при регистрации: ${error}`);
     return handleError(error);
   }
 };

@@ -51,8 +51,11 @@ async def check_task_status(task_id: str):
 
 @router.get("/get-audio-messages")
 async def get_audio_messages(request: Request, response: Response):
+    logger.warning(f"Пришёл запрос /get-audio-messages")
     headers = { "X-Session-ID": request.cookies.get("sessionid") }
+    logger.warning(f"Установили заголовок sessionid={request.cookies.get("sessionid")}")
     audio_response = await audio_interface.get_audio_messages(headers)
+    logger.warning(f"ПОлучили ответ: {audio_response}")
     return await _process_audio_response(audio_response, response)
 
 @router.get("/download-audio/{audio_uid}")

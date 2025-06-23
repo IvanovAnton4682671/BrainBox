@@ -24,7 +24,3 @@ spec:
             name: brainbox-neural-secret
         - configMapRef:
             name: brainbox-neural-configmap
-        resources:
-          limits:
-            memory: 512Mi
-            cpu: 500m

@@ -1,9 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: brainbox-minio-deployment
+  name: brainbox-minio-statefulset
   namespace: brainbox
 spec:
+  serviceName: brainbox-minio-service
   replicas: 1
   selector:
     matchLabels:
@@ -16,7 +17,6 @@ spec:
       containers:
       - name: minio
         image: minio/minio
-        command: ["/usr/bin/docker-entrypoint.sh"]
         args: ["server", "/data", "--console-address", ":9001"]
         ports:
         - containerPort: 9000
@@ -25,8 +25,12 @@ spec:
           name: console
         volumeMounts:
         - name: minio-data
-          mountPath: "/data"
-      volumes:
-      - name: minio-data
-        persistentVolumeClaim:
-          claimName: brainbox-minio-persistentvolumeclaim
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: minio-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi

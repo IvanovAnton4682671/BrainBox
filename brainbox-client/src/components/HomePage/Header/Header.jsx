@@ -1,9 +1,12 @@
+import { useChat } from "../../../utils/stateManager/chatContext";
 import { GiBrain } from "react-icons/gi";
 import { BsBox2 } from "react-icons/bs";
 import { IoPersonCircleSharp } from "react-icons/io5";
 import styles from "./Header.module.css";
 
 function Header({ handleLogout, userName }) {
+  const { deleteChat } = useChat();
+
   const handleConfirmExit = async () => {
     if (window.confirm("Вы уверены, что хотите выйти из аккаунта?")) {
       const success = await handleLogout();

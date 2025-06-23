@@ -67,8 +67,11 @@ async def check_user_session(request: Request, db: AsyncSession = Depends(get_db
     """
     Проверка валидности сессии
     """
+    logger.warning(f"Пришёл запрос /check-session")
     service = UserService(db)
+    logger.warning(f"Пробуем получить user по request.state.user_id={request.state.user_id}")
     user = await service.get_user_profile(request.state.user_id)
+    logger.warning(f"ПОлучили user={user}")
     return {
         "success": True,
         "message": "Сессия пользователя существует!",

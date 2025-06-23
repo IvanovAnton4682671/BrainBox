@@ -4,10 +4,11 @@ metadata:
   name: brainbox-postgresql-service
   namespace: brainbox
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: brainbox-postgresql
   ports:
   - protocol: TCP
     port: 5432
     targetPort: 5432
+    nodePort: 30002

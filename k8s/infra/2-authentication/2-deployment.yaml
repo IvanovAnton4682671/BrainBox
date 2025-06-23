@@ -24,7 +24,3 @@ spec:
             name: brainbox-authentication-secret
         - configMapRef:
             name: brainbox-authentication-configmap
-        resources:
-          limits:
-            memory: 512Mi
-            cpu: 500m

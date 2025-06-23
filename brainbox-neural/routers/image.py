@@ -81,7 +81,8 @@ async def get_image_messages(request: Request, session: AsyncSession = Depends(g
         user_id = await auth_interface.get_user_id(session_id)
         image_service = ImageService(session)
         messages = await image_service.get_user_messages(user_id)
-        print(messages)
+        if messages is None:
+            return {"success": True, "messages": []}
         return {
             "success": True,
             "messages": messages

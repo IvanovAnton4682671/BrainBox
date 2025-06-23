@@ -11,7 +11,6 @@ data:
     CREATE DATABASE brainboxchats;
     GRANT ALL PRIVILEGES ON DATABASE brainboxusers TO brainboxusersadmin;
     GRANT ALL PRIVILEGES ON DATABASE brainboxchats TO brainboxchatsadmin;
-  
   02-init-users.sql: |
     \connect brainboxusers
     CREATE TABLE IF NOT EXISTS users(
@@ -24,7 +23,6 @@ data:
     );
     GRANT ALL PRIVILEGES ON TABLE users TO brainboxusersadmin;
     GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO brainboxusersadmin;
-  
   03-init-chats.sql: |
     \connect brainboxchats
     CREATE TABLE IF NOT EXISTS audio_chat(
@@ -52,11 +50,9 @@ data:
     );
     GRANT ALL PRIVILEGES ON TABLE audio_chat, image_chat, text_chat TO brainboxchatsadmin;
     GRANT USAGE, SELECT ON SEQUENCE audio_chat_id_seq, image_chat_id_seq, text_chat_id_seq TO brainboxchatsadmin;
-
   run.sh: |-
     #!/bin/sh
     set -e
-    
     # Запускаем PostgreSQL в фоновом режиме
     docker-entrypoint.sh postgres &
     
@@ -64,14 +60,11 @@ data:
     until pg_isready -U postgres; do
       sleep 1
     done
-    
     # Выполняем скрипты инициализации с обработкой ошибок
     for script in /scripts/01-init.sql /scripts/02-init-users.sql /scripts/03-init-chats.sql; do
       psql -U postgres -f "$script" || true
     done
-    
     # Правильный способ остановки PostgreSQL от имени пользователя postgres
     PGUSER=postgres PGPASSWORD=$POSTGRES_PASSWORD pg_ctl -D "$PGDATA" stop -m fast
-    
     # Ждем завершения
     wait

@@ -56,10 +56,17 @@ async def recognize_saved_audio(request: Request, db: AsyncSession = Depends(get
 @router.get("/get-audio-messages")
 async def get_audio_messages(request: Request, db: AsyncSession = Depends(get_db)):
     try:
+        logger.warning(f"Пришёл запрос /get-audio-messages")
         session_id = request.headers.get("x-session-id")
+        logger.warning(f"Получили session_id = {session_id}")
         user_id = await auth_interface.get_user_id(session_id)
+        logger.warning(f"Получили user_id={user_id}")
         audio_repo = AudioRepository(db)
         messages = await audio_repo.get_user_messages(user_id)
+        logger.warning(f"Получили список сообщений: {messages}")
+        if messages is None:
+            logger.warning(f"messages is None, так что отправляем []")
+            return {"success": True, "messages": []}
         return { "success": True, "messages": messages }
     except Exception as e:
         raise

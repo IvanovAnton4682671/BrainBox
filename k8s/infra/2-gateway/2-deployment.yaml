@@ -24,7 +24,3 @@ spec:
             name: brainbox-gateway-secret
         - configMapRef:
             name: brainbox-gateway-configmap
-        resources:
-          limits:
-            memory: 512Mi
-            cpu: 500m

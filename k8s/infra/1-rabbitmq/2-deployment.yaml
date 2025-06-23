@@ -26,7 +26,3 @@ spec:
             name: brainbox-rabbitmq-secret
         - configMapRef:
             name: brainbox-rabbitmq-configmap
-        resources:
-          limits:
-            memory: 512Mi
-            cpu: 500m

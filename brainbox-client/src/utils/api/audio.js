@@ -55,6 +55,7 @@ export const checkTaskStatus = async (task_id) => {
 
 export const getAudioMessages = async () => {
   try {
+    console.log("Отправляем запрос на аудио-сообщения");
     const response = await axios.get(
       `${GATEWAY_URL_AUDIO}/get-audio-messages`,
       {
