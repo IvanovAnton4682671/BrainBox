@@ -6,8 +6,7 @@ from typing import AsyncGenerator
 Base = declarative_base()
 
 engine = create_async_engine(
-    #settings.POSTGRES_URL,
-    "postgresql+asyncpg://brainboxchatsadmin:brainboxchatsadmin@localhost:30003/brainboxchats",
+    settings.POSTGRES_URL,
     echo=settings.APP_DEBUG,
     future=True,
     pool_pre_ping=True

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-gateway-configmap
+  namespace: brainbox
+data:
+  RABBITMQ_AUDIO_REQUESTS: "audio_requests"
+  RABBITMQ_AUDIO_RESPONSES: "audio_responses"
+  RABBITMQ_IMAGE_REQUESTS: "image_requests"
+  RABBITMQ_IMAGE_RESPONSES: "image_responses"
+  RABBITMQ_TEXT_REQUESTS: "text_requests"
+  RABBITMQ_TEXT_RESPONSES: "text_responses"
+  REDIS_URL: "redis://brainbox-redis-service.brainbox.svc.cluster.local:6379/0"
+  GATEWAY_HOST: "0.0.0.0"
+  GATEWAY_PORT: "8000"
+  CLIENT_URL: "http://brainbox-client-service.brainbox.svc.cluster.local:3000"
+  CLIENT_URL_NODE: "http://localhost:30000"
+  AUTH_SERVICE_URL: "http://brainbox-authentication-service.brainbox.svc.cluster.local:8001"
+  NEURAL_SERVICE_URL: "http://brainbox-neural-service.brainbox.svc.cluster.local:8002"

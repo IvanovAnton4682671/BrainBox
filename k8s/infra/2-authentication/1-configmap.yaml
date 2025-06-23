@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-authentication-configmap
+  namespace: brainbox
+data:
+  REDIS_URL: "redis://brainbox-redis-service.brainbox.svc.cluster.local:6379/0"
+  AUTHORIZATION_HOST: "0.0.0.0"
+  AUTHORIZATION_PORT: "8001"
+  APP_DEBUG: "True"
+  GATEWAY_URL: "http://brainbox-gateway-service.brainbox.svc.cluster.local:8000"
+  NEURAL_SERVICE_URL: "http://brainbox-neural-service.brainbox.svc.cluster.local:8002"

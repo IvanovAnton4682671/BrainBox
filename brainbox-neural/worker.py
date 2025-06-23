@@ -14,6 +14,7 @@ from dramatiq import Message
 from datetime import datetime
 from pydantic import BaseModel, Field
 from dramatiq.middleware.asyncio import AsyncIO
+import time
 
 logger = setup_logger("worker.py")
 
@@ -26,7 +27,7 @@ class TempWrapper(BaseModel):
     def to_dict(self):
         return {"image_uid": self.image_uid}
 
-broker = RabbitmqBroker(url="amqp://guest:guest@localhost:30004")
+broker = RabbitmqBroker(url=settings.RABBITMQ_URL)
 broker.add_middleware(AsyncIO())
 dramatiq.set_broker(broker)
 

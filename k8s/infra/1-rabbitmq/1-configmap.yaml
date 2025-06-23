@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-rabbitmq-configmap
+  namespace: brainbox
+data:
+  RABBITMQ_DEFAULT_USER: "brainboxrabbitmq"
+  RABBITMQ_DEFAULT_VHOST: "/"
+  RABBITMQ_DEFAULT_PERMISSIONS: ".* .* .*"

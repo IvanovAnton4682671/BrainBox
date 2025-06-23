@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const GATEWAY_URL = "http://localhost:8000/auth";
+const GATEWAY_URL_AUTH = window.appConfig.GATEWAY_URL_AUTH;
 
 //настройка для автоматической отправки кук
 axios.defaults.withCredentials = true;
@@ -24,20 +24,24 @@ const handleError = (error) => {
 
 export const userRegister = async (email, name, password) => {
   try {
-    const response = await axios.post(`${GATEWAY_URL}/register`, {
+    const response = await axios.post(`${GATEWAY_URL_AUTH}/register`, {
       email: email,
       name: name,
       password: password,
     });
+    console.log(
+      `Выполнился запрос с данными ${email}, ${name}, ${password} на адрес ${GATEWAY_URL_AUTH}/register`
+    );
     return response.data;
   } catch (error) {
+    console.log(`Ошибка при регистрации: ${error}`);
     return handleError(error);
   }
 };
 
 export const userLogin = async (email, password) => {
   try {
-    const response = await axios.post(`${GATEWAY_URL}/login`, {
+    const response = await axios.post(`${GATEWAY_URL_AUTH}/login`, {
       email: email,
       password: password,
     });
@@ -49,7 +53,7 @@ export const userLogin = async (email, password) => {
 
 export const checkSession = async () => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/check-session`);
+    const response = await axios.get(`${GATEWAY_URL_AUTH}/check-session`);
     return response.data;
   } catch (error) {
     return handleError(error);
@@ -58,7 +62,7 @@ export const checkSession = async () => {
 
 export const userLogout = async () => {
   try {
-    const response = await axios.post(`${GATEWAY_URL}/logout`);
+    const response = await axios.post(`${GATEWAY_URL_AUTH}/logout`);
     return response.data;
   } catch (error) {
     return handleError(error);

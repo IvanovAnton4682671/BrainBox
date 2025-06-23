@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-authentication-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-authentication
+  template:
+    metadata:
+      labels:
+        app: brainbox-authentication
+    spec:
+      containers:
+      - name: authentication
+        image: brainbox-authentication:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8001
+        envFrom:
+        - secretRef:
+            name: brainbox-authentication-secret
+        - configMapRef:
+            name: brainbox-authentication-configmap
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m

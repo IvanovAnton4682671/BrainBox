@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-gateway-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-gateway
+  template:
+    metadata:
+      labels:
+        app: brainbox-gateway
+    spec:
+      containers:
+      - name: gateway
+        image: brainbox-gateway:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: brainbox-gateway-secret
+        - configMapRef:
+            name: brainbox-gateway-configmap
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m

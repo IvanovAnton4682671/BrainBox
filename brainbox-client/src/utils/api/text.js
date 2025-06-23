@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const GATEWAY_URL = "http://localhost:8000/text";
+const GATEWAY_URL_TEXT = window.appConfig.GATEWAY_URL_TEXT;
 
 axios.defaults.withCredentials = true;
 
 export const generateAnswer = async (text) => {
   try {
-    const response = await axios.post(`${GATEWAY_URL}/generate-answer`, {
+    const response = await axios.post(`${GATEWAY_URL_TEXT}/generate-answer`, {
       text: text,
     });
     return response.data;
@@ -21,7 +21,7 @@ export const generateAnswer = async (text) => {
 
 export const checkTaskStatus = async (task_id) => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/tasks/${task_id}`);
+    const response = await axios.get(`${GATEWAY_URL_TEXT}/tasks/${task_id}`);
     return response.data;
   } catch (error) {
     console.error("Check task status error: ", error);
@@ -31,7 +31,7 @@ export const checkTaskStatus = async (task_id) => {
 
 export const getTextMessages = async () => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/get-text-messages`, {
+    const response = await axios.get(`${GATEWAY_URL_TEXT}/get-text-messages`, {
       withCredentials: true,
       headers: {
         "Content-Type": "application/json",
@@ -54,12 +54,15 @@ export const getTextMessages = async () => {
 
 export const deleteTextMessages = async () => {
   try {
-    const response = await axios.delete(`${GATEWAY_URL}/delete-text-messages`, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.delete(
+      `${GATEWAY_URL_TEXT}/delete-text-messages`,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error(

@@ -1,7 +1,7 @@
 PostgreSQL Server + Command Line Tools (база - postgres postgres 5432)
 Установить Path C:\Program Files\PostgreSQL\14\bin для работы psql
 0. Запуск сервера (win+r -> services.msc -> postgresql-x64-14 -> выполняется)
-1. Зайти под пользователя (cmd -> psql -U postgres -h localhost -p 5432 -d dbname -> пароль)
+1. Зайти под пользователя (cmd -> psql -U postgres -h localhost -p 5432 -d postgres -> пароль)
 2.1 Создание пользователя (CREATE USER user1 WITH PASSWORD '12345';)
 2.2 Удаление пользователя (DROP USER user1;)
 2.3 Список всех пользователей (\du)
@@ -60,7 +60,7 @@ CREATE TABLE text_chat(
 
 docker run --name brainbox-redis -d -p 6379:6379 redis:alpine
 docker exec -it brainbox-redis redis-cli
-scan 0
+scan 0 match * count 100
 exit
 
 docker run --name brainbox-minio -d -p 9000:9000 -p 9001:9001 minio/minio server /data --console-address ":9001"

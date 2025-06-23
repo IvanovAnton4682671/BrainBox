@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const GATEWAY_URL = "http://localhost:8000/image";
+const GATEWAY_URL_IMAGE = window.appConfig.GATEWAY_URL_IMAGE;
 
 axios.defaults.withCredentials = true;
 
 export const generateAnswer = async (text) => {
   try {
-    const response = await axios.post(`${GATEWAY_URL}/generate-answer`, {
+    const response = await axios.post(`${GATEWAY_URL_IMAGE}/generate-answer`, {
       text: text,
     });
     return response.data;
@@ -18,7 +18,7 @@ export const generateAnswer = async (text) => {
 
 export const checkTaskStatus = async (task_id) => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/tasks/${task_id}`);
+    const response = await axios.get(`${GATEWAY_URL_IMAGE}/tasks/${task_id}`);
     return response.data;
   } catch (error) {
     console.error("Check task status error: ", error);
@@ -28,7 +28,7 @@ export const checkTaskStatus = async (task_id) => {
 
 export const viewImage = async (image_uid) => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/view/${image_uid}`, {
+    const response = await axios.get(`${GATEWAY_URL_IMAGE}/view/${image_uid}`, {
       responseType: "blob",
       withCredentials: true,
     });
@@ -40,10 +40,13 @@ export const viewImage = async (image_uid) => {
 
 export const downloadImage = async (image_uid) => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/download/${image_uid}`, {
-      responseType: "blob",
-      withCredentials: true,
-    });
+    const response = await axios.get(
+      `${GATEWAY_URL_IMAGE}/download/${image_uid}`,
+      {
+        responseType: "blob",
+        withCredentials: true,
+      }
+    );
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -60,12 +63,15 @@ export const downloadImage = async (image_uid) => {
 
 export const getImageMessages = async () => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/get-image-messages`, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.get(
+      `${GATEWAY_URL_IMAGE}/get-image-messages`,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return {
       messages: response.data.messages.map((msg) => ({
         ...msg,
@@ -81,7 +87,7 @@ export const getImageMessages = async () => {
 export const deleteImageMessages = async () => {
   try {
     const response = await axios.delete(
-      `${GATEWAY_URL}/delete-image-messages`,
+      `${GATEWAY_URL_IMAGE}/delete-image-messages`,
       {
         withCredentials: true,
         headers: {

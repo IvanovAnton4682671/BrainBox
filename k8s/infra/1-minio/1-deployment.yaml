@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-minio-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-minio
+  template:
+    metadata:
+      labels:
+        app: brainbox-minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio
+        command: ["/usr/bin/docker-entrypoint.sh"]
+        args: ["server", "/data", "--console-address", ":9001"]
+        ports:
+        - containerPort: 9000
+          name: api
+        - containerPort: 9001
+          name: console
+        volumeMounts:
+        - name: minio-data
+          mountPath: "/data"
+      volumes:
+      - name: minio-data
+        persistentVolumeClaim:
+          claimName: brainbox-minio-persistentvolumeclaim

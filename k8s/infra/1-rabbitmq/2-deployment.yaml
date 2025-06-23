@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-rabbitmq-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-rabbitmq
+  template:
+    metadata:
+      labels:
+        app: brainbox-rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3-management
+        ports:
+        - containerPort: 5672
+          name: amqp
+        - containerPort: 15672
+          name: management
+        envFrom:
+        - secretRef:
+            name: brainbox-rabbitmq-secret
+        - configMapRef:
+            name: brainbox-rabbitmq-configmap
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m

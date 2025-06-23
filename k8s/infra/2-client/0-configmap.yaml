@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-client-configmap
+  namespace: brainbox
+data:
+  config.js: |
+    window.appConfig = {
+      GATEWAY_URL_AUTH: "http://localhost:30001/auth",
+      GATEWAY_URL_AUDIO: "http://localhost:30001/audio",
+      GATEWAY_URL_IMAGE: "http://localhost:30001/image",
+      GATEWAY_URL_TEXT: "http://localhost:30001/text",
+      IMAGE_VIEW: "http://localhost:30001/image/view"
+    };

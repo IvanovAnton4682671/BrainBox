@@ -9,6 +9,8 @@ function ChatMessageZone({ messages }) {
   //ссылка на скроллбар для автоматической прокрутки сообщений вниз
   const messageBoxRef = React.useRef(null);
 
+  const IMAGE_VIEW = window.appConfig.IMAGE_VIEW;
+
   //реализация автоматической прокрутки при получении нового сообщения
   React.useEffect(() => {
     if (messageBoxRef.current) {
@@ -75,7 +77,7 @@ function ChatMessageZone({ messages }) {
             {message.image_uid && (
               <div className={styles.imageWrapper}>
                 <img
-                  src={`http://localhost:8000/image/view/${message.image_uid}`}
+                  src={`${IMAGE_VIEW}/${message.image_uid}`}
                   alt={"Generated картинка"}
                   className={styles.myImage}
                 />

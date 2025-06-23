@@ -108,7 +108,7 @@ class UserService:
             return user
         except Exception as e:
             logger.error(f"Ошибка при получении профиля: {str(e)}", exc_info=True)
-            raise
+            return UserInDB(name=None, email=None, id=None, created_at=None, last_login=None, password_hash=None)
 
     async def logout_user(self, sessionid: str) -> None:
         """

@@ -6,6 +6,7 @@ import uvicorn
 from core.config import settings
 import multiprocessing
 import sys
+import time
 
 logger = setup_logger("http")
 
@@ -16,7 +17,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000"],
+    allow_origins=[settings.GATEWAY_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,6 +59,7 @@ def run_server():
     )
 
 if __name__ == "__main__":
+    time.sleep(30)
     worker_process = multiprocessing.Process(target=run_worker)
     worker_process.start()
     try:

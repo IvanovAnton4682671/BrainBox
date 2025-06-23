@@ -3,7 +3,7 @@ import axios from "axios";
 import { userRegister, userLogin } from "../api/auth";
 import { useAuthContext } from "../stateManager/authContext";
 
-const GATEWAY_URL = "http://localhost:8000/auth";
+const GATEWAY_URL_AUTH = window.appConfig.GATEWAY_URL_AUTH;
 
 export const useAuth = () => {
   const { isAuthenticated, setIsAuthenticated, userName, setUserName } =
@@ -14,7 +14,7 @@ export const useAuth = () => {
   const checkSession = React.useCallback(async () => {
     console.log("Проверка сессии...");
     try {
-      const response = await axios.get(`${GATEWAY_URL}/check-session`, {
+      const response = await axios.get(`${GATEWAY_URL_AUTH}/check-session`, {
         withCredentials: true,
         timeout: 5000,
       });
@@ -56,7 +56,7 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       const response = await axios.post(
-        `${GATEWAY_URL}/logout`,
+        `${GATEWAY_URL_AUTH}/logout`,
         {},
         {
           withCredentials: true,

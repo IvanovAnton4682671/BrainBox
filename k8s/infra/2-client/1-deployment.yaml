@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-client-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-client
+  template:
+    metadata:
+      labels:
+        app: brainbox-client
+    spec:
+      containers:
+      - name: client
+        image: brainbox-client:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: client-config
+          mountPath: /usr/share/nginx/html/config.js
+          subPath: config.js
+      volumes:
+      - name: client-config
+        configMap:
+          name: brainbox-client-configmap

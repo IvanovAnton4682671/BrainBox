@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-redis-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-redis
+  template:
+    metadata:
+      labels:
+        app: brainbox-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        args: ["--save", "60", "1"]
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 100m
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: brainbox-redis-persistentvolumeclaim

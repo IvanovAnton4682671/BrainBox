@@ -79,20 +79,28 @@ class RabbitMQ:
             if self.connection and not self.connection.is_closed:
                 return
             logger.info("Устанавливаем соединение с RabbitMQ...")
-            try:
-                self.connection = await aio_pika.connect_robust(
-                    #url=settings.RABBITMQ_URL,
-                    url="amqp://guest:guest@localhost:30004",
-                    client_properties={"connection_name": "gateway-main"},
-                    on_reconnect=self._on_reconnect
-                )
-                self.channel = await self.connection.channel()
-                await self._declare_queues()
-                logger.info("Соединение установлено!")
-            except Exception as e:
-                logger.error(f"Ошибка при подключении к RabbitMQ: {str(e)}", exc_info=True)
-                self.connection = None
-                self.channel = None
+            max_attempts = 10
+            backoff = 5
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    self.connection = await aio_pika.connect_robust(
+                        url=settings.RABBITMQ_URL,
+                        timeout=10,
+                        client_properties={"connection_name": "gateway-main"},
+                        on_reconnect=self._on_reconnect,
+                    )
+                    self.channel = await self.connection.channel()
+                    await self._declare_queues()
+                    logger.info("Соединение установлено!")
+                    return
+                except Exception as e:
+                    logger.warning(f"Попытка {attempt}/{max_attempts}: ошибка подключения: {str(e)}")
+                    if attempt < max_attempts:
+                        await asyncio.sleep(backoff * attempt)
+                    else:
+                        logger.error(f"Не удалось подключиться после {max_attempts} попыток: {str(e)}", exc_info=True)
+                        self.connection = None
+                        self.channel = None
 
     async def close(self) -> None:
         """

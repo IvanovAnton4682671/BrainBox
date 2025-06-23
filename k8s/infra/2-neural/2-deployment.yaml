@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-neural-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-neural
+  template:
+    metadata:
+      labels:
+        app: brainbox-neural
+    spec:
+      containers:
+      - name: neural
+        image: brainbox-neural:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8002
+        envFrom:
+        - secretRef:
+            name: brainbox-neural-secret
+        - configMapRef:
+            name: brainbox-neural-configmap
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m

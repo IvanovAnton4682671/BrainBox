@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const GATEWAY_URL = "http://localhost:8000/audio";
+const GATEWAY_URL_AUDIO = window.appConfig.GATEWAY_URL_AUDIO;
 
 //автоматическая отправка кук
 axios.defaults.withCredentials = true;
@@ -9,11 +9,15 @@ export const uploadAudio = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
   try {
-    const response = await axios.post(`${GATEWAY_URL}/upload-audio`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await axios.post(
+      `${GATEWAY_URL_AUDIO}/upload-audio`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Upload audio error: ", error);
@@ -23,9 +27,12 @@ export const uploadAudio = async (file) => {
 
 export const recognizeSavedAudio = async (audio_uid) => {
   try {
-    const response = await axios.post(`${GATEWAY_URL}/recognize-saved-audio`, {
-      audio_uid: audio_uid,
-    });
+    const response = await axios.post(
+      `${GATEWAY_URL_AUDIO}/recognize-saved-audio`,
+      {
+        audio_uid: audio_uid,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error(
@@ -38,7 +45,7 @@ export const recognizeSavedAudio = async (audio_uid) => {
 
 export const checkTaskStatus = async (task_id) => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/tasks/${task_id}`);
+    const response = await axios.get(`${GATEWAY_URL_AUDIO}/tasks/${task_id}`);
     return response.data;
   } catch (error) {
     console.error("Check task status error: ", error);
@@ -48,12 +55,15 @@ export const checkTaskStatus = async (task_id) => {
 
 export const getAudioMessages = async () => {
   try {
-    const response = await axios.get(`${GATEWAY_URL}/get-audio-messages`, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.get(
+      `${GATEWAY_URL_AUDIO}/get-audio-messages`,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return {
       messages: response.data.messages.map((msg) => ({
         ...msg,
@@ -69,7 +79,7 @@ export const getAudioMessages = async () => {
 export const downloadAudio = async (audio_uid) => {
   try {
     const response = await axios.get(
-      `${GATEWAY_URL}/download-audio/${audio_uid}`,
+      `${GATEWAY_URL_AUDIO}/download-audio/${audio_uid}`,
       {
         responseType: "blob",
         withCredentials: true,
@@ -93,7 +103,7 @@ export const downloadAudio = async (audio_uid) => {
 export const deleteAudioMessages = async () => {
   try {
     const response = await axios.delete(
-      `${GATEWAY_URL}/delete-audio-messages`,
+      `${GATEWAY_URL_AUDIO}/delete-audio-messages`,
       {
         withCredentials: true,
         headers: {

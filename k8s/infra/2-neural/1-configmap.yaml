@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-neural-configmap
+  namespace: brainbox
+data:
+  MINIO_URL: "brainbox-minio-service.brainbox.svc.cluster.local:9000"
+  MINIO_ACCESS_KEY: "minioadmin"
+  MINIO_SECURE: "False"
+  MINIO_BUCKET_AUDIO: "audio-files"
+  MINIO_BUCKET_IMAGE: "image-files"
+  RABBITMQ_AUDIO_REQUESTS: "audio_requests"
+  RABBITMQ_AUDIO_RESPONSES: "audio_responses"
+  RABBITMQ_IMAGE_REQUESTS: "image_requests"
+  RABBITMQ_IMAGE_RESPONSES: "image_responses"
+  RABBITMQ_TEXT_REQUESTS: "text_requests"
+  RABBITMQ_TEXT_RESPONSES: "text_responses"
+  REDIS_URL: "redis://brainbox-redis-service.brainbox.svc.cluster.local:6379/0"
+  NEURAL_HOST: "0.0.0.0"
+  NEURAL_PORT: "8002"
+  APP_DEBUG: "True"
+  GATEWAY_URL: "http://brainbox-gateway-service.brainbox.svc.cluster.local:8000"
+  AUTH_SERVICE_URL: "http://brainbox-authentication-service.brainbox.svc.cluster.local:8001"
