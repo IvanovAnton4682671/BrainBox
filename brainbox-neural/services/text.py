@@ -7,7 +7,7 @@ from schemas.text import MessageText, UserID, IsFromUser, TextMessageResponse
 from models.text import TextMessage
 from typing import Optional, List
 
-logger = setup_logger("services/text.py")
+logger = setup_logger("services.text")
 
 class TextService:
     def __init__(self, session: AsyncSession):
@@ -25,6 +25,7 @@ class TextService:
         """
         try:
             result = self.model.run(message_text)
+            logger.info("Получили сгенерированный текст")
             return result.alternatives[0].text
         except Exception as e:
             logger.error(f"Ошибка генерации ответа через YandexGPT API: {str(e)}", exc_info=True)
@@ -41,6 +42,7 @@ class TextService:
                 message_text=message_text
             )
             await self.repo.create_message(system_message)
+            logger.info("Сохранили сообщение в бд")
         except Exception as e:
             logger.error(f"Ошибка сохранения сообщения: {str(e)}", exc_info=True)
             raise
@@ -54,6 +56,7 @@ class TextService:
             answer = self._generate_answer(text)
             await self._save_message(user_id, False, answer)
             saved_system_message = await self.repo.get_message_by_message_text(answer)
+            logger.info("Создали сообщение с сгенерированным текстом и вернули его")
             return TextMessageResponse(
                 is_from_user=saved_system_message.is_from_user,
                 message_text=saved_system_message.message_text,
@@ -69,6 +72,7 @@ class TextService:
         """
         try:
             messages = await self.repo.get_messages_by_user_id(user_id)
+            logger.info("Успешно получили сообщения")
             return messages
         except Exception as e:
             logger.error(f"Ошибка загрузки истории чата: {str(e)}", exc_info=True)
@@ -83,6 +87,7 @@ class TextService:
             if not messages:
                 return
             await self.repo.delete_messages(user_id)
+            logger.info("Удалили все сообщения")
             return
         except Exception as e:
             logger.error(f"Ошибка удаления истории чата: {str(e)}", exc_info=True)

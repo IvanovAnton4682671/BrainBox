@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-grafana-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-grafana
+  template:
+    metadata:
+      labels:
+        app: brainbox-grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+        envFrom:
+        - secretRef:
+            name: brainbox-grafana-secret
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+          subPath: datasources.yaml
+        - name: config-volume
+          mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+          subPath: dashboards.yaml
+        - name: dashboard-volume
+          mountPath: /etc/grafana/provisioning/dashboards/loki-dashboard.json
+          subPath: loki-dashboard.json
+      volumes:
+      - name: config-volume
+        configMap:
+          name: brainbox-grafana-configmap
+      - name: dashboard-volume
+        configMap:
+          name: brainbox-grafana-loki-dashboard

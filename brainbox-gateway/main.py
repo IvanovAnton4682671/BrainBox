@@ -1,18 +1,20 @@
+from core.logger import setup_logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
-from core.logger import setup_logger
 from routers import audio, auth, text, image
 import uvicorn
 from core.rabbitmq import rabbitmq
 from contextlib import asynccontextmanager
 
-logger = setup_logger("http")
+logger = setup_logger("main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("RabbitMQ запущен...")
     await rabbitmq.connect()
     yield
+    logger.info("RabbitMQ остановлен")
     await rabbitmq.close()
 
 app = FastAPI(
@@ -39,5 +41,5 @@ async def root():
     return {"message": "BrainBox API Gateway is running..."}
 
 if __name__ == "__main__":
-    logger.info("API Gateway запущен!")
+    logger.info("API Gateway запущен")
     uvicorn.run("main:app", host=settings.GATEWAY_HOST, port=settings.GATEWAY_PORT, reload=True)

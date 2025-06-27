@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: brainbox-loki-service
+  namespace: brainbox
+spec:
+  type: ClusterIP
+  selector:
+    app: brainbox-loki
+  ports:
+  - protocol: TCP
+    port: 3100
+    targetPort: 3100

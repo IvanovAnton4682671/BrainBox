@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-promtail-configmap
+  namespace: brainbox
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+      - url: http://brainbox-loki-service.brainbox.svc.cluster.local:3100/loki/api/v1/push
+        backoff_config:
+          min_period: 1s
+          max_period: 5s
+          max_retries: 5
+        batchwait: 1s
+        batchsize: 102400
+        timeout: 10s
+    scrape_configs:
+    - job_name: brainbox-authentication
+      static_configs:
+      - targets: [localhost]
+        labels:
+          job: authentication
+          __path__: /var/log/pods/brainbox_brainbox-authentication-*/authentication/*.log
+      pipeline_stages:
+      - cri: {}
+      - json:
+          expressions:
+            log_content: log
+      - output:
+          source: log_content
+      - labels:
+          stream:
+    - job_name: brainbox-gateway
+      static_configs:
+      - targets: [localhost]
+        labels:
+          job: gateway
+          __path__: /var/log/pods/brainbox_brainbox-gateway-*/gateway/*.log
+      pipeline_stages:
+      - cri: {}
+      - json:
+          expressions:
+            log_content: log
+      - output:
+          source: log_content
+      - labels:
+          stream:
+    - job_name: brainbox-neural
+      static_configs:
+      - targets: [localhost]
+        labels:
+          job: neural
+          __path__: /var/log/pods/brainbox_brainbox-neural-*/neural/*.log
+      pipeline_stages:
+      - cri: {}
+      - json:
+          expressions:
+            log_content: log
+      - output:
+          source: log_content
+      - labels:
+          stream:

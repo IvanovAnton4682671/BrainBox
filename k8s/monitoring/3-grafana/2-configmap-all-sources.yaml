@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-grafana-configmap
+  namespace: brainbox
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://brainbox-loki-service.brainbox.svc.cluster.local:3100
+        editable: true
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      allowUiUpdates: true
+      options:
+        path: /etc/grafana/provisioning/dashboards

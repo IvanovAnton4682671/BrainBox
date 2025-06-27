@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brainbox-loki-deployment
+  namespace: brainbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brainbox-loki
+  template:
+    metadata:
+      labels:
+        app: brainbox-loki
+    spec:
+      containers:
+      - name: loki
+        image: grafana/loki:latest
+        args:
+          - -config.file=/etc/loki/local-config.yaml
+        ports:
+        - containerPort: 3100

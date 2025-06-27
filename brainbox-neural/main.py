@@ -8,7 +8,7 @@ import multiprocessing
 import sys
 import time
 
-logger = setup_logger("http")
+logger = setup_logger("main")
 
 app = FastAPI(
     title="BrainBox Neural Service",
@@ -37,6 +37,7 @@ def run_worker():
     """
 
     from dramatiq.cli import main as dramatiq_main
+    logger.info("Запускаем dramatiq worker в параллельных процессах")
     processes = multiprocessing.cpu_count()
     sys.argv = [
         "dramatiq",
@@ -51,6 +52,7 @@ def run_server():
     Запускает сервер
     """
 
+    logger.info("Сервис нейросетей запущен...")
     uvicorn.run(
         "main:app",
         host=settings.NEURAL_HOST,

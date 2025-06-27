@@ -1,1 +1,0 @@
-kubectl get svc -n brainbox

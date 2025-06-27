@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: brainbox-promtail-service
+  namespace: brainbox
+spec:
+  type: ClusterIP
+  selector:
+    app: brainbox-promtail
+  ports:
+  - protocol: TCP
+    port: 9080
+    targetPort: 9080

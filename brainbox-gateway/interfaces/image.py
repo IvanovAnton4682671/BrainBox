@@ -2,7 +2,7 @@ from core.logger import setup_logger
 from core.config import settings
 from httpx import AsyncClient, Timeout, Limits, AsyncHTTPTransport
 
-logger = setup_logger("interfaces/image.py")
+logger = setup_logger("interfaces.image")
 
 class ImageInterface:
     def __init__(self):
@@ -15,7 +15,7 @@ class ImageInterface:
 
     async def generate_answer(self, headers: dict, text: str):
         try:
-            logger.info("Получен /generate-answer запрос для сервиса нейросетей!")
+            logger.info("Получен /generate-answer запрос для сервиса нейросетей")
             return await self.client.post(
                 url=f"{self.base_url}/generate-answer",
                 headers=headers,
@@ -27,7 +27,7 @@ class ImageInterface:
 
     async def view_image(self, headers: dict, image_uid: str):
         try:
-            logger.info("Получен /view/{image_uid} запрос для сервис нейросетей!")
+            logger.info("Получен /view/{image_uid} запрос для сервис нейросетей")
             return await self.client.get(
                 url=f"{self.base_url}/view/{image_uid}",
                 headers=headers
@@ -38,7 +38,7 @@ class ImageInterface:
 
     async def download_image(self, headers: dict, image_uid: str):
         try:
-            logger.info("Получен /download/{image_uid} запрос для сервиса нейросетей!")
+            logger.info("Получен /download/{image_uid} запрос для сервиса нейросетей")
             return await self.client.get(
                 url=f"{self.base_url}/download/{image_uid}",
                 headers=headers
@@ -49,7 +49,7 @@ class ImageInterface:
 
     async def get_image_messages(self, headers: dict):
         try:
-            logger.info("Получен /get-image-messages запрос для сервиса нейросетей!")
+            logger.info("Получен /get-image-messages запрос для сервиса нейросетей")
             return await self.client.get(
                 url=f"{self.base_url}/get-image-messages",
                 headers=headers
@@ -60,7 +60,7 @@ class ImageInterface:
 
     async def delete_image_messages(self, headers: dict):
         try:
-            logger.info("Получен /delete-image-messages запрос для сервиса нейросетей!")
+            logger.info("Получен /delete-image-messages запрос для сервиса нейросетей")
             return await self.client.delete(
                 url=f"{self.base_url}/delete-image-messages",
                 headers=headers

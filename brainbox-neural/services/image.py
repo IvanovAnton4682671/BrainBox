@@ -5,12 +5,10 @@ from core.config import settings
 from repositories.image import ImageRepository
 from schemas.image import MessageText, UserID, ImageMessageInDB, ImageMessageResponse, ImageMessageRequest
 from core.storage import image_storage
-from uuid import uuid4
-import pathlib
 from typing import List
 from models.image import ImageMessage
 
-logger = setup_logger("services/image.py")
+logger = setup_logger("services.image")
 
 class ImageService:
     def __init__(self, session: AsyncSession):
@@ -25,6 +23,7 @@ class ImageService:
     async def _save_user_message(self, message: ImageMessageRequest) -> ImageMessageInDB:
         try:
             saved_message = await self.repo.create_user_message(message)
+            logger.info("Сохранили пользовательское сообщение")
             return saved_message
         except Exception as e:
             logger.error(f"Ошибка сохранения сообщения пользователя: {str(e)}", exc_info=True)
@@ -33,11 +32,13 @@ class ImageService:
     async def _generate_image(self, text: MessageText) -> bytes:
         operation = self.model.run_deferred(text)
         result = operation.wait()
+        logger.info("Получили сгенерированное изображение, возвращаем поток байтов")
         return result.image_bytes
 
     async def _save_image_minio(self, image_data: bytes) -> str:
         try:
             saved_image_uid = await image_storage.upload_image(image_data)
+            logger.info("Сохранили картинку в minio")
             return saved_image_uid
         except Exception as e:
             logger.error(f"Ошибка сохранения картинки в MinIO: {str(e)}", exc_info=True)
@@ -51,6 +52,7 @@ class ImageService:
                 image_uid=image_uid
             )
             saved_message = await self.repo.create_system_message(message)
+            logger.info("Сохранили картинку в бд")
             return saved_message
         except Exception as e:
             logger.error(f"Ошибка сохранения картинки в БД: {str(e)}", exc_info=True)
@@ -62,6 +64,7 @@ class ImageService:
             image = await self._generate_image(user_message.message_text)
             image_uid = await self._save_image_minio(image)
             system_message = await self._save_image_db(user_message.user_id, image_uid)
+            logger.info("Создали и вернули сообщение с картинкой")
             return system_message
         except Exception as e:
             logger.error(f"Ошибка создания системного ответа: {str(e)}", exc_info=True)
@@ -87,6 +90,7 @@ class ImageService:
                         object_name=str(msg.image_uid)
                     )
             await self.repo.delete_user_messages(user_id)
+            logger.info("Удалили все сообщения и картинки")
             return
         except Exception as e:
             logger.error(f"Ошибка при удалении всех сообщений чата: {str(e)}", exc_info=True)

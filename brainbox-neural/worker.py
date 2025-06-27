@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from dramatiq.middleware.asyncio import AsyncIO
 import time
 
-logger = setup_logger("worker.py")
+logger = setup_logger("worker")
 
 class TempWrapper(BaseModel):
     image_uid: str = Field(
@@ -42,48 +42,20 @@ async def process_audio_task(task_id: str, *, session_id: str, audio_uid: str):
     try:
         async with async_session_maker() as session:
             try:
+                logger.info(f"Аудио-воркер взял задачу {task_id}")
                 user_id = await auth_interface.get_user_id(session_id)
                 audio_service = AudioService(session)
                 result = await audio_service.recognize_saved_audio(user_id, audio_uid)
-                logger.warning(f"Задача {task_id} отработана с результатом {result}")
+                logger.info(f"Задача {task_id} отработана с результатом {result}")
                 redis_key = f"audio_task_result:{task_id}"
                 await redis.setex(
                     name=redis_key,
                     time=3600,
                     value=json.dumps(result.to_dict())
                 )
-                logger.warning(f"Задача {task_id} сохранена в redis по {redis_key}")
+                logger.info(f"Задача {task_id} сохранена в redis по {redis_key}")
             except Exception as e:
-                await session.rollback()
-                raise
-            finally:
-                await session.close()
-    except Exception as e:
-        raise
-
-@dramatiq.actor(queue_name=settings.RABBITMQ_TEXT_REQUESTS)
-async def process_text_task(task_id: str, *, session_id: str, message_text: str):
-    """
-    Обработчик текстовых задач. Получает:
-        task_id как позиционный аргумент
-        session_id, message_text как именованные аргументы
-    """
-
-    try:
-        async with async_session_maker() as session:
-            try:
-                user_id = await auth_interface.get_user_id(session_id)
-                text_service = TextService(session)
-                result = await text_service.create_answer(user_id, message_text)
-                logger.warning(f"Задача {task_id} отработана с результатом {result}")
-                redis_key = f"text_task_result:{task_id}"
-                await redis.setex(
-                    name=redis_key,
-                    time=3600,
-                    value=json.dumps(result.to_dict())
-                )
-                logger.warning(f"Задача {task_id} сохранена в redis по {redis_key}")
-            except Exception as e:
+                logger.error(f"Ошибка при выполнении аудио-задачи: {str(e)}", exc_info=True)
                 await session.rollback()
                 raise
             finally:
@@ -102,6 +74,7 @@ async def process_image_task(task_id: str, *, session_id: str, message_text: str
     try:
         async with async_session_maker() as session:
             try:
+                logger.info(f"Воркер картинок взял задачу {task_id}")
                 user_id = await auth_interface.get_user_id(session_id)
                 image_service = ImageService(session)
                 user_message = ImageMessageRequest(
@@ -110,15 +83,48 @@ async def process_image_task(task_id: str, *, session_id: str, message_text: str
                 )
                 result = await image_service.create_answer(user_message)
                 wrapped_result = TempWrapper(image_uid=str(result.image_uid))
-                logger.warning(f"Задача {task_id} отработана с результатом {wrapped_result}")
+                logger.info(f"Задача {task_id} отработана с результатом {wrapped_result}")
                 redis_key = f"image_task_result:{task_id}"
                 await redis.setex(
                     name=redis_key,
                     time=3600,
                     value=json.dumps(wrapped_result.to_dict())
                 )
-                logger.warning(f"Задача {task_id} сохранена в redis по {redis_key}")
+                logger.info(f"Задача {task_id} сохранена в redis по {redis_key}")
             except Exception as e:
+                logger.error(f"Ошибка при выполнении задачи картинки: {str(e)}", exc_info=True)
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
+    except Exception as e:
+        raise
+
+@dramatiq.actor(queue_name=settings.RABBITMQ_TEXT_REQUESTS)
+async def process_text_task(task_id: str, *, session_id: str, message_text: str):
+    """
+    Обработчик текстовых задач. Получает:
+        task_id как позиционный аргумент
+        session_id, message_text как именованные аргументы
+    """
+
+    try:
+        async with async_session_maker() as session:
+            try:
+                logger.info(f"Текстовый воркер взял задачу {task_id}")
+                user_id = await auth_interface.get_user_id(session_id)
+                text_service = TextService(session)
+                result = await text_service.create_answer(user_id, message_text)
+                logger.info(f"Задача {task_id} отработана с результатом {result}")
+                redis_key = f"text_task_result:{task_id}"
+                await redis.setex(
+                    name=redis_key,
+                    time=3600,
+                    value=json.dumps(result.to_dict())
+                )
+                logger.info(f"Задача {task_id} сохранена в redis по {redis_key}")
+            except Exception as e:
+                logger.error(f"Ошибка при выполнении текстовой задачи: {str(e)}", exc_info=True)
                 await session.rollback()
                 raise
             finally:

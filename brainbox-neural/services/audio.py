@@ -8,7 +8,7 @@ from schemas.audio import AudioUploadResponse, AudioMessageCreate
 from core.storage import audio_storage
 import os
 
-logger = setup_logger("services/audio.py")
+logger = setup_logger("services.audio")
 
 class AudioService:
     def __init__(self, session: AsyncSession):
@@ -18,7 +18,7 @@ class AudioService:
         """
         Распознаёт речь из аудио-файла с очисткой ресурсов
         """
-        logger.info("Пришёл запрос на распознавание речи!")
+        logger.info("Пришёл запрос на распознавание речи")
         try:
             with io.BytesIO() as wav_buffer:
                 if file_extension.lower() != "wav":
@@ -32,6 +32,7 @@ class AudioService:
                 with sr.AudioFile(wav_buffer) as source:
                     audio_data = recognizer.record(source)
                     text = recognizer.recognize_google(audio_data, language="ru-RU")
+                    logger.info("Речь распознана, возвращаем ответ")
                     return { "text": text, "status": "success" }
         except Exception as e:
             logger.error(f"При распознавании произошла ошибка: {str(e)}", exc_info=True)
@@ -58,6 +59,7 @@ class AudioService:
         Распознаёт уже сохранённый файл
         """
         try:
+            logger.info("Начинаем процесс распознавания аудио-файла...")
             #получение информации о сообщении из БД
             message = await self.repo.get_message_by_uid(audio_uid)
             if not message or message.user_id != user_id:
@@ -71,6 +73,7 @@ class AudioService:
             recognition_text = recognition_result["text"]
             #сохраняем системный ответ
             await self._save_system_response(user_id, recognition_text)
+            logger.info("Аудио-файл успешно распознан, возвращаем ответ")
             return AudioUploadResponse(
                 message="Аудио-файл успешно распознан!",
                 text=recognition_text,
@@ -85,6 +88,7 @@ class AudioService:
         Удаляет всю историю чата
         """
         try:
+            logger.info("Удаляем все сообщения и аудио-файлы")
             messages = await self.repo.get_user_messages(user_id)
             if not messages:
                 return { "success": True }

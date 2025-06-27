@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: brainbox-promtail-daemonset
+  namespace: brainbox
+spec:
+  selector:
+    matchLabels:
+      name: brainbox-promtail
+  template:
+    metadata:
+      labels:
+        name: brainbox-promtail
+    spec:
+      serviceAccountName: brainbox-promtail-serviceaccount
+      containers:
+      - name: promtail
+        image: grafana/promtail:latest
+        args:
+          - -config.file=/etc/promtail/promtail.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /etc/promtail
+        - name: logs
+          mountPath: /var/log
+          readOnly: true
+        - name: docker
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: rootfs
+          mountPath: /run/desktop/mnt/host
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: brainbox-promtail-configmap
+      - name: logs
+        hostPath:
+          path: /var/log
+      - name: docker
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: rootfs
+        hostPath:
+          path: /

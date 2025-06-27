@@ -4,7 +4,7 @@ import asyncio
 from core.config import settings
 import json
 
-logger = setup_logger("core/rabbitmq.py")
+logger = setup_logger("core.rabbitmq")
 
 class RabbitMQ:
     def __init__(self):
@@ -58,7 +58,7 @@ class RabbitMQ:
             except Exception as e:
                 logger.error(f"Ошибка при создании очередей: {str(e)}", exc_info=True)
                 raise
-        logger.info("Очереди успешно созданы!")
+        logger.info("Очереди успешно созданы")
         self._declare_queues = True
 
     async def _on_reconnect(self, connection: aio_pika.RobustConnection) -> None:
@@ -91,7 +91,7 @@ class RabbitMQ:
                     )
                     self.channel = await self.connection.channel()
                     await self._declare_queues()
-                    logger.info("Соединение установлено!")
+                    logger.info("Соединение установлено")
                     return
                 except Exception as e:
                     logger.warning(f"Попытка {attempt}/{max_attempts}: ошибка подключения: {str(e)}")
@@ -111,7 +111,7 @@ class RabbitMQ:
             if self.connection:
                 try:
                     await self.connection.close()
-                    logger.info("Соединение закрыто!")
+                    logger.info("Соединение закрыто")
                 except Exception as e:
                     logger.error(f"Ошибка при закрытии соединения: ", str(e), exc_info=True)
                 finally:
@@ -125,6 +125,7 @@ class RabbitMQ:
         """
 
         if not self.connection or self.connection.is_closed:
+            logger.warning("Соединение отсутствовало или было закрыто, возобновляем...")
             await self.connect()
 
     async def publish(self, queue_name: str, message: dict) -> None:

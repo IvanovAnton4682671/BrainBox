@@ -7,7 +7,7 @@ from interfaces.auth import auth_interface
 from services.text import TextService
 from repositories.text import TextRepository
 
-logger = setup_logger("routers/text.py")
+logger = setup_logger("routers.text")
 
 router = APIRouter(
     prefix="/text",
@@ -20,12 +20,14 @@ async def generate_answer(request: Request, session: AsyncSession = Depends(get_
     Генерация и возврат ответа
     """
     try:
+        logger.info("Получили запрос /generate-answer")
         session_id = request.headers.get("x-session-id")
         user_id = await auth_interface.get_user_id(session_id)
         request_data = await request.json()
         text = request_data.get("text")
         text_service = TextService(session)
         message_response = await text_service.create_answer(user_id, text)
+        logger.info("Запрос выполнен, возвращаем результат")
         return {
             "success": True,
             "message_response": message_response
@@ -40,12 +42,15 @@ async def get_text_messages(request: Request, session: AsyncSession = Depends(ge
     Загрузка всей истории чата пользователя
     """
     try:
+        logger.info("Получили запрос /get-text-messages")
         session_id = request.headers.get("x-session-id")
         user_id = await auth_interface.get_user_id(session_id)
         text_service = TextService(session)
         messages = await text_service.get_messages(user_id)
         if messages is None:
+            logger.info("messages is None, возвращаем пустой массив")
             return {"success": True, "messages": []}
+        logger.info("Запрос выполнен, возвращаем результат")
         return {
             "success": True,
             "messages": messages
@@ -60,10 +65,12 @@ async def delete_text_messages(request: Request, session: AsyncSession = Depends
     Удаляет всю историю чата пользователя
     """
     try:
+        logger.info("Получили запрос /delete-text-messages")
         session_id = request.headers.get("x-session-id")
         user_id = await auth_interface.get_user_id(session_id)
         text_service = TextService(session)
         await text_service.delete_messages(user_id)
+        logger.info("Запрос выполнен, возвращаем результат")
         return {
             "success": True
         }

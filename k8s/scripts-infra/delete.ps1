@@ -1,0 +1,2 @@
+kubectl delete -n brainbox deployment brainbox-rabbitmq-deployment brainbox-authentication-deployment brainbox-client-deployment brainbox-gateway-deployment brainbox-neural-deployment
+kubectl delete -n brainbox statefulset brainbox-minio-statefulset brainbox-postgresql-statefulset brainbox-redis-statefulset
