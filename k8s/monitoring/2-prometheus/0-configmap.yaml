@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brainbox-prometheus-configmap
+  namespace: brainbox
+data:
+  prometheus.yaml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+    - job_name: gateway
+      static_configs:
+      - targets:
+        - brainbox-gateway-service.brainbox.svc.cluster.local:8000
+    - job_name: authentication
+      static_configs:
+      - targets:
+        - brainbox-authentication-service.brainbox.svc.cluster.local:8001
+    - job_name: neural
+      static_configs:
+      - targets:
+        - brainbox-neural-service.brainbox.svc.cluster.local:8002

@@ -17,7 +17,7 @@ spec:
       - name: promtail
         image: grafana/promtail:latest
         args:
-          - -config.file=/etc/promtail/promtail.yaml
+        - -config.file=/etc/promtail/promtail.yaml
         volumeMounts:
         - name: config
           mountPath: /etc/promtail

@@ -7,6 +7,7 @@ from core.config import settings
 import multiprocessing
 import sys
 import time
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = setup_logger("main")
 
@@ -30,6 +31,8 @@ app.include_router(text.router)
 @app.get("/")
 async def root():
     return {"message": "BrainBox Neural Service is running..."}
+
+Instrumentator().instrument(app).expose(app)
 
 def run_worker():
     """

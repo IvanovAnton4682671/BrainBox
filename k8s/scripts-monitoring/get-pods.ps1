@@ -1,1 +1,0 @@
-kubectl get -n brainbox pods

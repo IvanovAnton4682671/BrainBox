@@ -6,6 +6,7 @@ from routers import audio, auth, text, image
 import uvicorn
 from core.rabbitmq import rabbitmq
 from contextlib import asynccontextmanager
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = setup_logger("main")
 
@@ -35,6 +36,8 @@ app.include_router(auth.router)
 app.include_router(audio.router)
 app.include_router(image.router)
 app.include_router(text.router)
+
+Instrumentator().instrument(app).expose(app)
 
 @app.get("/")
 async def root():

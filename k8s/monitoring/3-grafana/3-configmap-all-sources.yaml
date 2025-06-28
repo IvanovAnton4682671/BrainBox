@@ -7,11 +7,16 @@ data:
   datasources.yaml: |
     apiVersion: 1
     datasources:
-      - name: Loki
-        type: loki
-        access: proxy
-        url: http://brainbox-loki-service.brainbox.svc.cluster.local:3100
-        editable: true
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://brainbox-loki-service.brainbox.svc.cluster.local:3100
+      editable: true
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://brainbox-prometheus-service.brainbox.svc.cluster.local:9090
+      isDefault: true
   dashboards.yaml: |
     apiVersion: 1
     providers:

@@ -28,13 +28,19 @@ spec:
         - name: config-volume
           mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
           subPath: dashboards.yaml
-        - name: dashboard-volume
+        - name: loki-dashboard-volume
           mountPath: /etc/grafana/provisioning/dashboards/loki-dashboard.json
           subPath: loki-dashboard.json
+        - name: prometheus-dashboard-volume
+          mountPath: /etc/grafana/provisioning/dashboards/prometheus-dashboard.json
+          subPath: prometheus-dashboard.json
       volumes:
       - name: config-volume
         configMap:
           name: brainbox-grafana-configmap
-      - name: dashboard-volume
+      - name: loki-dashboard-volume
         configMap:
           name: brainbox-grafana-loki-dashboard
+      - name: prometheus-dashboard-volume
+        configMap:
+          name: brainbox-grafana-prometheus-dashboard

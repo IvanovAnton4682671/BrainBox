@@ -1,1 +1,0 @@
-kubectl scale -n brainbox deployment brainbox-loki-deployment brainbox-grafana-deployment --replicas=0

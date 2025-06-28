@@ -8,6 +8,7 @@ from core.errors import handle_request_validation_error
 import time
 from databases.redis import redis
 from fastapi.exceptions import RequestValidationError
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = setup_logger("main")
 
@@ -82,6 +83,8 @@ async def log_request(request: Request, call_next):
             content=f"Internal server error: {str(e)}",
             status_code=500
         )
+
+Instrumentator().instrument(app).expose(app)
 
 @app.get("/")
 async def root():
