@@ -86,22 +86,22 @@ start.ps1
 
 #### Архитектура
 
-![[Проектирование.png]]
+![Проектирование](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Проектирование.png)
 
 #### Внеший вид сервиса
 
 1. Веб-интерфейс
-   ![[Pasted image 20250628235830.png]]
-   ![[Pasted image 20250628235851.png]]
-   ![[Pasted image 20250628235918.png]]
-   ![[Pasted image 20250628235952.png]]
-   ![[Pasted image 20250629000010.png]]
-   ![[Pasted image 20250629000145.png]]
-2. Мониторинг
-   ![[Pasted image 20250629000529.png]]
-   ![[Pasted image 20250629000553.png]]
-3. Развёрнутая инфраструктура
-   ![[Pasted image 20250629000632.png]]
+   ![Регистрация](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250628235830.png)
+   ![Авторизация](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250628235851.png)
+   ![Домашняя страница](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250628235918.png)
+   ![Речь в текст](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250628235952.png)
+   ![Генерация картинок](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250629000010.png)
+   ![Чат-бот](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250629000145.png)
+3. Мониторинг
+   ![Логи](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250629000529.png)
+   ![Метрики](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250629000553.png)
+5. Развёрнутая инфраструктура
+   ![k8s](https://github.com/IvanovAnton4682671/BrainBox/blob/master/Pasted%20image%2020250629000632.png)
 
 #### Ключевые особенности
 
